@@ -9,6 +9,8 @@ import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
 /**
+ * This is the application's user interface implementation.
+ *
  * @author Ritwik Banerjee
  */
 public final class AppUI extends UITemplate {

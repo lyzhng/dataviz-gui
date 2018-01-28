@@ -8,7 +8,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 /**
+ * The data files used by this data visualization applications follow a tab-separated format, where each data point is
+ * named, labeled, and has a specific location in the 2-dimensional X-Y plane. This class handles the parsing and
+ * processing of such data. It also handles exporting the data to a 2-D plot.
+ * <p>
+ * A sample file in this format has been provided in the application's <code>resources/data</code> folder.
+ *
  * @author Ritwik Banerjee
+ * @see XYChart
  */
 public final class TSDProcessor {
 
@@ -29,6 +36,12 @@ public final class TSDProcessor {
         dataPoints = new HashMap<>();
     }
 
+    /**
+     * Processes the data and populated two {@link Map} objects with the data.
+     *
+     * @param tsdString the input data provided as a single {@link String}
+     * @throws Exception if the input string does not follow the <code>.tsd</code> data format
+     */
     public void processString(String tsdString) throws Exception {
         AtomicBoolean hadAnError   = new AtomicBoolean(false);
         StringBuilder errorMessage = new StringBuilder();
@@ -52,6 +65,11 @@ public final class TSDProcessor {
             throw new Exception(errorMessage.toString());
     }
 
+    /**
+     * Exports the data to the specified 2-D chart.
+     *
+     * @param chart the specified chart
+     */
     void toChartData(XYChart<Number, Number> chart) {
         Set<String> labels = new HashSet<>(dataLabels.values());
         for (String label : labels) {

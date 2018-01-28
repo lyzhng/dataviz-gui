@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 /**
+ * This is the concrete implementation of the action handlers required by the application.
+ *
  * @author Ritwik Banerjee
  */
 public final class AppActions implements ActionComponent {
