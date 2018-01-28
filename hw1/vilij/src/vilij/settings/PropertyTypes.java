@@ -26,7 +26,6 @@ public enum PropertyTypes {
     PRINT_ICON,
     SAVE_ICON,
     LOAD_ICON,
-    SAVED_ICON,
     EXIT_ICON,
     LOGO,
 
@@ -42,8 +41,7 @@ public enum PropertyTypes {
     LOAD_ERROR_TITLE,
     SAVE_ERROR_TITLE,
 
-    /** error messages for errors that require an argument */
-    PRINT_ERROR_MSG,
+    /* error messages for errors that require an argument */
     SAVE_ERROR_MSG,
     LOAD_ERROR_MSG,
 

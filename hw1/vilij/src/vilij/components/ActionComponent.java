@@ -1,7 +1,5 @@
 package vilij.components;
 
-import java.io.IOException;
-
 /**
  * @author Ritwik Banerjee
  */
@@ -9,12 +7,12 @@ public interface ActionComponent {
 
     void handleNewRequest();
 
-    void handleSaveRequest() throws IOException;
+    void handleSaveRequest();
 
-    void handleLoadRequest() throws IOException;
+    void handleLoadRequest();
 
-    void handleExitRequest() throws IOException;
+    void handleExitRequest();
 
-    void handlePrintRequest() throws IOException;
+    void handlePrintRequest();
 
 }

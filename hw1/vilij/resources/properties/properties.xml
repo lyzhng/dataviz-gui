@@ -34,7 +34,7 @@ functionality within the main workspace. -->
         <property name="EXIT_TOOLTIP" value="Exit application"/>
 
         <!-- ERROR TITLES -->
-        <property name="NOT_SUPPORTED_FOR_TEMPLATE_ERROR_TITLE" value="Operation not supported for templates."/>
+        <property name="NOT_SUPPORTED_FOR_TEMPLATE_ERROR_TITLE" value="Operation Not Supported for Templates"/>
         <property name="LOAD_ERROR_TITLE" value="Load Error"/>
         <property name="SAVE_ERROR_TITLE" value="Save Error"/>
 
