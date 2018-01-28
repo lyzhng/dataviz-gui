@@ -1,6 +1,8 @@
 package vilij.components;
 
 /**
+ * Defines the behavior of the core actions to be handled by an application.
+ *
  * @author Ritwik Banerjee
  */
 public interface ActionComponent {
