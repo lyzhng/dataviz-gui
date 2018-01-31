@@ -13,7 +13,6 @@ import vilij.components.UIComponent;
 import vilij.propertymanager.PropertyManager;
 import vilij.settings.PropertyTypes;
 
-import static java.io.File.separator;
 import static vilij.settings.PropertyTypes.*;
 
 /**
@@ -25,6 +24,7 @@ import static vilij.settings.PropertyTypes.*;
  */
 public class UITemplate implements UIComponent {
 
+    private static final String SEPARATOR = "/";
     private static final String UI_NOT_INITIALIZABLE_FOR_TEMPLATES = "The graphical user interface cannot be " +
                                                                      "initialized at template-level. A child " +
                                                                      "class must be implemented.";
@@ -105,18 +105,18 @@ public class UITemplate implements UIComponent {
 
     protected void setResourcePaths(ApplicationTemplate applicationTemplate) {
         PropertyManager manager = applicationTemplate.manager;
-        String iconsPath = separator + String.join(separator,
+        String iconsPath = SEPARATOR + String.join(SEPARATOR,
                                                    manager.getPropertyValue(GUI_RESOURCE_PATH.name()),
                                                    manager.getPropertyValue(ICONS_RESOURCE_PATH.name()));
 
-        newiconPath = String.join(separator, iconsPath, manager.getPropertyValue(NEW_ICON.name()));
-        saveiconPath = String.join(separator, iconsPath, manager.getPropertyValue(SAVE_ICON.name()));
-        loadiconPath = String.join(separator, iconsPath, manager.getPropertyValue(LOAD_ICON.name()));
-        exiticonPath = String.join(separator, iconsPath, manager.getPropertyValue(EXIT_ICON.name()));
-        printiconPath = String.join(separator, iconsPath, manager.getPropertyValue(PRINT_ICON.name()));
-        logoPath = String.join(separator, iconsPath, manager.getPropertyValue(LOGO.name()));
+        newiconPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue(NEW_ICON.name()));
+        saveiconPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue(SAVE_ICON.name()));
+        loadiconPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue(LOAD_ICON.name()));
+        exiticonPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue(EXIT_ICON.name()));
+        printiconPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue(PRINT_ICON.name()));
+        logoPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue(LOGO.name()));
 
-        cssPath = separator + String.join(separator,
+        cssPath = SEPARATOR + String.join(SEPARATOR,
                                           manager.getPropertyValue(GUI_RESOURCE_PATH.name()),
                                           manager.getPropertyValue(CSS_RESOURCE_PATH.name()),
                                           manager.getPropertyValue(CSS_RESOURCE_FILENAME.name()));
