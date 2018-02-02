@@ -40,6 +40,8 @@ public final class AppUI extends UITemplate {
     @Override
     protected void setToolBar(ApplicationTemplate applicationTemplate) {
         // TODO for homework 1
+        // Changed
+        super.setToolBar(applicationTemplate);
     }
 
     @Override
@@ -65,9 +67,11 @@ public final class AppUI extends UITemplate {
 
     private void layout() {
         // TODO for homework 1
+
     }
 
     private void setWorkspaceActions() {
         // TODO for homework 1
+
     }
 }
