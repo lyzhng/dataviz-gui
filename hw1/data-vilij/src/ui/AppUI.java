@@ -40,7 +40,7 @@ public final class AppUI extends UITemplate {
     @Override
     protected void setToolBar(ApplicationTemplate applicationTemplate) {
         // TODO for homework 1
-        // Changed!
+        // Changed
         super.setToolBar(applicationTemplate);
     }
 
