@@ -9,10 +9,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
+
+import java.nio.file.Paths;
 
 /**
  * This is the application's user interface implementation.
@@ -46,8 +49,11 @@ public final class AppUI extends UITemplate {
     @Override
     protected void setToolBar(ApplicationTemplate applicationTemplate) {
         // TODO for homework 1
-        // Changed!
+        // Changed
         super.setToolBar(applicationTemplate);
+        /* scrnshotButton = setToolbarButton("/Users/lilyzhong/IdeaProjects/cse219homework/hw1/data-vilij/resources/gui/icons/screenshot.png",
+                "Screenshot",
+                false); */
     }
 
     @Override
@@ -79,15 +85,24 @@ public final class AppUI extends UITemplate {
         textArea = new TextArea();
         displayButton = new Button("Display");
         userRegulated.getChildren().addAll(text, textArea, displayButton);
-        appPane.getChildren().add(userRegulated);
+
+        // Why doesn't userRegulated.setPrefWidth(400); work?
+
+        userRegulated.setMaxWidth(400);
+        userRegulated.setPadding(new Insets(50, 50, 50, 50));
+        workspace = new Pane();
+        workspace.getChildren().add(userRegulated);
+        appPane.getChildren().add(workspace);
         primaryStage.setScene(primaryScene);
 
         // Right side of the layout is what is generated based on input.
+
+
 
     }
 
     private void setWorkspaceActions() {
         // TODO for homework 1
-
+        // Display button
     }
 }

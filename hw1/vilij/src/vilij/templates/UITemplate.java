@@ -38,14 +38,17 @@ public class UITemplate implements UIComponent {
     protected String  exiticonPath;     // path to the 'save' icon
     protected String  logoPath;         // path to the Vilij logo icon
     protected String  cssPath;          // path to the CSS file used for stylization of the user interface
+
     protected Stage   primaryStage;     // the application window
     protected Scene   primaryScene;     // the scene graph
     protected Pane    appPane;          // the root node in the scene graph, to organize the containers
+
     protected Button  newButton;        // button to create new data
     protected Button  saveButton;       // button to save progress on application
     protected Button  loadButton;       // button to load data for the application
     protected Button  exitButton;       // button to exit application
     protected Button  printButton;      // button to print a visualization
+
     protected String  applicationTitle; // the application title
     protected Image   logo;             // the Vilij logo
     protected int     windowWidth;
@@ -102,7 +105,7 @@ public class UITemplate implements UIComponent {
         button.setDisable(disabled);
         return button;
     }
-
+    // comment
     protected void setResourcePaths(ApplicationTemplate applicationTemplate) {
         PropertyManager manager = applicationTemplate.manager;
         String iconsPath = SEPARATOR + String.join(SEPARATOR,
@@ -122,6 +125,7 @@ public class UITemplate implements UIComponent {
                                           manager.getPropertyValue(CSS_RESOURCE_FILENAME.name()));
 
         logo = new Image(getClass().getResourceAsStream(logoPath));
+
     }
 
     /** Initialization is not provided at the template-level, and must be implemented by a child class. */

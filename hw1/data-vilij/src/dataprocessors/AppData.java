@@ -14,7 +14,7 @@ import java.nio.file.Path;
  */
 public class AppData implements DataComponent {
 
-    private TSDProcessor        processor;
+    private TSDProcessor        processor; // the main data processor
     private ApplicationTemplate applicationTemplate;
 
     public AppData(ApplicationTemplate applicationTemplate) {
