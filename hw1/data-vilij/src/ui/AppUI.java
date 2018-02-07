@@ -6,16 +6,14 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import settings.AppPropertyTypes;
+import vilij.settings.PropertyTypes;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
@@ -54,11 +52,18 @@ public final class AppUI extends UITemplate {
     protected void setToolBar(ApplicationTemplate applicationTemplate) {
         // TODO for homework 1
         // Changed
-        super.setToolBar(applicationTemplate);
-        String scrnshoticonPath = String.join("/", "", applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_TOOLTIP.name()));
-        /* scrnshotButton = setToolbarButton(,
-                AppPropertyTypes.SCREENSHOT_TOOLTIP.name(),
-                false); */
+        String iconsPath =
+                "/" + String.join("/",
+                applicationTemplate.manager.getPropertyValue(PropertyTypes.GUI_RESOURCE_PATH.name()),
+                applicationTemplate.manager.getPropertyValue(PropertyTypes.GUI_RESOURCE_PATH.name()));
+        String scrnshotPath =
+                String.join("/",
+                        iconsPath,
+                        applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_TOOLTIP.name()));
+        scrnshotButton =
+                setToolbarButton(newiconPath,
+                        applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_TOOLTIP.name()),
+                        true);
     }
 
     @Override
