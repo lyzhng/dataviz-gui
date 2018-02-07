@@ -12,6 +12,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import settings.AppPropertyTypes;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
@@ -51,8 +52,9 @@ public final class AppUI extends UITemplate {
         // TODO for homework 1
         // Changed
         super.setToolBar(applicationTemplate);
-        /* scrnshotButton = setToolbarButton("/Users/lilyzhong/IdeaProjects/cse219homework/hw1/data-vilij/resources/gui/icons/screenshot.png",
-                "Screenshot",
+        String scrnshoticonPath = String.join("/", "", applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_TOOLTIP.name()));
+        /* scrnshotButton = setToolbarButton(,
+                AppPropertyTypes.SCREENSHOT_TOOLTIP.name(),
                 false); */
     }
 
