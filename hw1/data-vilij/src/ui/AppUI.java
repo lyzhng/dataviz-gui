@@ -64,7 +64,7 @@ public final class AppUI extends UITemplate {
         scrnshotButton =
                 setToolbarButton(scrnshotPath,
                         applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_TOOLTIP.name()),
-                        false);
+                        true);
         toolBar = new ToolBar(newButton, saveButton, loadButton, printButton, exitButton, scrnshotButton);
     }
 
