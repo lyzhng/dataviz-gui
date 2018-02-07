@@ -4,12 +4,15 @@ import actions.AppActions;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import settings.AppPropertyTypes;
@@ -81,30 +84,30 @@ public final class AppUI extends UITemplate {
 
     private void layout() {
         // TODO for homework 1
-        // Left side of the layout contains what the user wants to do.
-        VBox userRegulated = new VBox();
+        BorderPane container = new BorderPane();
+        workspace = new Pane();
+
+        VBox for_user = new VBox(5);
+        for_user.setMaxWidth(400);
+        for_user.setPadding(new Insets(20, 20, 20, 20));
         Label text = new Label("Data File");
         textArea = new TextArea();
         displayButton = new Button("Display");
-        userRegulated.getChildren().addAll(text, textArea, displayButton);
+        for_user.getChildren().addAll(text, textArea, displayButton);
+        container.setLeft(for_user);
 
-        // Why doesn't userRegulated.setPrefWidth(400); work?
+        NumberAxis xAxis = new NumberAxis();
+        NumberAxis yAxis = new NumberAxis();
+        chart = new ScatterChart<>(xAxis, yAxis);
+        container.setRight(chart);
 
-        userRegulated.setMaxWidth(400);
-        userRegulated.setPadding(new Insets(50, 50, 50, 50));
-        workspace = new Pane();
-        workspace.getChildren().add(userRegulated);
-        appPane.getChildren().add(workspace);
+        workspace.getChildren().addAll(container);
+        appPane.getChildren().addAll(workspace);
         primaryStage.setScene(primaryScene);
-
-        // Right side of the layout is what is generated based on input.
-
-
-
     }
 
     private void setWorkspaceActions() {
         // TODO for homework 1
-        // Display button
+        // display button
     }
 }
