@@ -52,18 +52,20 @@ public final class AppUI extends UITemplate {
     protected void setToolBar(ApplicationTemplate applicationTemplate) {
         // TODO for homework 1
         // Changed
+        super.setToolBar(applicationTemplate);
         String iconsPath =
                 "/" + String.join("/",
                 applicationTemplate.manager.getPropertyValue(PropertyTypes.GUI_RESOURCE_PATH.name()),
-                applicationTemplate.manager.getPropertyValue(PropertyTypes.GUI_RESOURCE_PATH.name()));
+                applicationTemplate.manager.getPropertyValue(PropertyTypes.ICONS_RESOURCE_PATH.name()));
         String scrnshotPath =
                 String.join("/",
                         iconsPath,
-                        applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_TOOLTIP.name()));
+                        applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_ICON.name()));
         scrnshotButton =
-                setToolbarButton(newiconPath,
+                setToolbarButton(scrnshotPath,
                         applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_TOOLTIP.name()),
-                        true);
+                        false);
+        toolBar = new ToolBar(newButton, saveButton, loadButton, printButton, exitButton, scrnshotButton);
     }
 
     @Override
