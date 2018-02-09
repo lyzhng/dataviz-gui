@@ -128,7 +128,6 @@ public final class AppUI extends UITemplate {
         });
 
         // Segment: New Button, Save Button
-        // TODO: Must check for correct format!
         textArea.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {

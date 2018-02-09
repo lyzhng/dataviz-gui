@@ -1,8 +1,11 @@
 package actions;
 
 import javafx.application.Platform;
+import javafx.stage.Stage;
 import ui.DataVisualizer;
 import vilij.components.ActionComponent;
+import vilij.components.ConfirmationDialog;
+import vilij.components.Dialog;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
@@ -29,6 +32,11 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleNewRequest() {
         // TODO for homework 1
+        // Confirmation dialog appears, asking Y/N/Cancel.
+        // TODO: Hard-coded...
+        applicationTemplate
+                .getDialog(Dialog.DialogType.CONFIRMATION)
+                .show("Confirmation", "Confirmation Message");
     }
 
     @Override
