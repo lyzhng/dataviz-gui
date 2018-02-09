@@ -70,6 +70,7 @@ public final class TSDProcessor {
      *
      * @param chart the specified chart
      */
+
     void toChartData(XYChart<Number, Number> chart) {
         Set<String> labels = new HashSet<>(dataLabels.values());
         for (String label : labels) {

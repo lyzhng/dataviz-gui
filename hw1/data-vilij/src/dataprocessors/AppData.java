@@ -29,6 +29,7 @@ public class AppData implements DataComponent {
 
     public void loadData(String dataString) {
         // TODO for homework 1
+        // processor.processString(dataString);
     }
 
     @Override
@@ -38,7 +39,7 @@ public class AppData implements DataComponent {
 
     @Override
     public void clear() {
-        processor.clear();
+        //processor.clear();
     }
 
     public void displayData() {

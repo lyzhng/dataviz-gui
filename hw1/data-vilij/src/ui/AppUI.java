@@ -1,6 +1,8 @@
 package ui;
 
 import actions.AppActions;
+import dataprocessors.AppData;
+import dataprocessors.TSDProcessor;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -115,6 +117,11 @@ public final class AppUI extends UITemplate {
 
     private void setWorkspaceActions() {
         // TODO for homework 1
-        // display button
+        ((AppData)(applicationTemplate.getDataComponent())).loadData(textArea.getText());
+        // finish loadData
+        displayButton.setOnAction(e -> {
+            // processString somewhere
+            ((AppData)(applicationTemplate.getDataComponent())).displayData();
+        });
     }
 }
