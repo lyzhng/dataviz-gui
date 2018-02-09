@@ -3,6 +3,8 @@ package ui;
 import actions.AppActions;
 import dataprocessors.AppData;
 import dataprocessors.TSDProcessor;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -117,20 +119,29 @@ public final class AppUI extends UITemplate {
 
     private void setWorkspaceActions() {
         // TODO for homework 1
-        // Part: Display Button
-        ((AppData)(applicationTemplate.getDataComponent())).loadData(textArea.getText());
-        // finish loadData
+
+        // Segment: Display Button
+        // ...
         displayButton.setOnAction(e -> {
             // processString somewhere
             ((AppData)(applicationTemplate.getDataComponent())).displayData();
         });
 
-        // Part: New Button
-        /*
-            if hasNewText recognizes at least 1 line in the textArea (addListener, textProperty)
-                newButton.setDisable(false);
-            if it doesn't recognize at least 1 line in the textArea
-                newButton.setDisable(true);
-        */
+        // Segment: New Button, Save Button
+        // TODO: Must check for correct format!
+        textArea.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if (newValue.equals("")) {
+                    newButton.setDisable(true);
+                    saveButton.setDisable(true);
+                }
+                else {
+                    newButton.setDisable(false);
+                    saveButton.setDisable(false);
+                }
+            }
+        });
+
     }
 }
