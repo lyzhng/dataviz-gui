@@ -1,7 +1,10 @@
 package actions;
 
+import javafx.application.Platform;
+import ui.DataVisualizer;
 import vilij.components.ActionComponent;
 import vilij.templates.ApplicationTemplate;
+import vilij.templates.UITemplate;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -41,6 +44,9 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleExitRequest() {
         // TODO for homework 1
+        // primaryStage.onCloseRequest(e -> Platform.exit());
+        Platform.exit();
+        System.exit(0);
     }
 
     @Override

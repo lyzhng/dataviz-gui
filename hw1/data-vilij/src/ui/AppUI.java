@@ -117,11 +117,20 @@ public final class AppUI extends UITemplate {
 
     private void setWorkspaceActions() {
         // TODO for homework 1
+        // Part: Display Button
         ((AppData)(applicationTemplate.getDataComponent())).loadData(textArea.getText());
         // finish loadData
         displayButton.setOnAction(e -> {
             // processString somewhere
             ((AppData)(applicationTemplate.getDataComponent())).displayData();
         });
+
+        // Part: New Button
+        /*
+            if hasNewText recognizes at least 1 line in the textArea (addListener, textProperty)
+                newButton.setDisable(false);
+            if it doesn't recognize at least 1 line in the textArea
+                newButton.setDisable(true);
+        */
     }
 }
