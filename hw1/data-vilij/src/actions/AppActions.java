@@ -1,6 +1,8 @@
 package actions;
 
 import javafx.application.Platform;
+import javafx.scene.control.Button;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import ui.DataVisualizer;
 import vilij.components.ActionComponent;
@@ -9,8 +11,11 @@ import vilij.components.Dialog;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This is the concrete implementation of the action handlers required by the application.
@@ -34,9 +39,19 @@ public final class AppActions implements ActionComponent {
         // TODO for homework 1
         // Confirmation dialog appears, asking Y/N/Cancel.
         // TODO: Hard-coded...
+
         applicationTemplate
                 .getDialog(Dialog.DialogType.CONFIRMATION)
                 .show("Confirmation", "Confirmation Message");
+
+        // TODO: When "YES" is clicked, prompt to save the file.
+        /* ConfirmationDialog.Option option =  ((ConfirmationDialog) (applicationTemplate
+                .getDialog(Dialog.DialogType.CONFIRMATION))).getSelectedOption(); */
+
+        /* List<ConfirmationDialog.Option> options =
+                Arrays.asList(ConfirmationDialog.Option.values()); */
+
+
     }
 
     @Override
@@ -52,7 +67,6 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleExitRequest() {
         // TODO for homework 1
-        // primaryStage.onCloseRequest(e -> Platform.exit());
         Platform.exit();
         System.exit(0);
     }
@@ -81,6 +95,13 @@ public final class AppActions implements ActionComponent {
     private boolean promptToSave() throws IOException {
         // TODO for homework 1
         // TODO remove the placeholder line below after you have implemented this method
-        return false;
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Testing");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter( "Tab-Separated Data File", ".*.tsd")
+        );
+        File selectedFile = fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+
+        return true;
     }
 }

@@ -98,18 +98,16 @@ public final class AppUI extends UITemplate {
         BorderPane container = new BorderPane();
         workspace = new Pane();
 
-        VBox for_user = new VBox(5);
-        for_user.setMaxWidth(400);
-        for_user.setPadding(new Insets(20, 20, 20, 20));
+        VBox leftSide = new VBox(5);
+        leftSide.setMaxWidth(400);
+        leftSide.setPadding(new Insets(20, 20, 20, 20));
         Label text = new Label("Data File");
         textArea = new TextArea();
         displayButton = new Button("Display");
-        for_user.getChildren().addAll(text, textArea, displayButton);
-        container.setLeft(for_user);
+        leftSide.getChildren().addAll(text, textArea, displayButton);
+        container.setLeft(leftSide);
 
-        NumberAxis xAxis = new NumberAxis();
-        NumberAxis yAxis = new NumberAxis();
-        chart = new ScatterChart<>(xAxis, yAxis);
+        chart = new ScatterChart<>(new NumberAxis(), new NumberAxis());
         container.setRight(chart);
 
         workspace.getChildren().addAll(container);
@@ -121,13 +119,13 @@ public final class AppUI extends UITemplate {
         // TODO for homework 1
 
         // Segment: Display Button
-        // ...
         displayButton.setOnAction(e -> {
             // processString somewhere
+            ((AppData)(applicationTemplate.getDataComponent())).loadData(textArea.getText());
             ((AppData)(applicationTemplate.getDataComponent())).displayData();
         });
 
-        // Segment: New Button, Save Button
+        // Segment: New/Save Buttons
         textArea.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {

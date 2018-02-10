@@ -2,6 +2,8 @@ package dataprocessors;
 
 import ui.AppUI;
 import vilij.components.DataComponent;
+import vilij.components.Dialog;
+import vilij.components.ErrorDialog;
 import vilij.templates.ApplicationTemplate;
 
 import java.nio.file.Path;
@@ -29,7 +31,14 @@ public class AppData implements DataComponent {
 
     public void loadData(String dataString) {
         // TODO for homework 1
-        // processor.processString(dataString);
+        try {
+            processor.processString(dataString);
+        }
+        catch (Exception e) {
+            applicationTemplate
+                    .getDialog(Dialog.DialogType.ERROR)
+                    .show("Error", "There exists a line that does not follow .tsd formatting.");
+        }
     }
 
     @Override
