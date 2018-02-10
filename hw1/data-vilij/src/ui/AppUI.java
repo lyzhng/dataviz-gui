@@ -40,6 +40,7 @@ public final class AppUI extends UITemplate {
     private TextArea                     textArea;       // text area for new data input
     private boolean                      hasNewText;     // whether or not the text area has any new data since last display
 
+    private static final String EMPTY_STRING = "";
     public ScatterChart<Number, Number> getChart() { return chart; }
 
     public AppUI(Stage primaryStage, ApplicationTemplate applicationTemplate) {
@@ -91,6 +92,14 @@ public final class AppUI extends UITemplate {
     @Override
     public void clear() {
         // TODO for homework 1
+
+        // Remove plotted data in chart
+        while (!chart.getData().isEmpty()){
+            chart.getData().remove(0); // what about maps?
+        }
+
+        // Remove previous text
+        textArea.setText(EMPTY_STRING);
     }
 
     private void layout() {
@@ -120,7 +129,6 @@ public final class AppUI extends UITemplate {
 
         // Segment: Display Button
         displayButton.setOnAction(e -> {
-            // processString somewhere
             ((AppData)(applicationTemplate.getDataComponent())).loadData(textArea.getText());
             ((AppData)(applicationTemplate.getDataComponent())).displayData();
         });
@@ -129,7 +137,7 @@ public final class AppUI extends UITemplate {
         textArea.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if (newValue.equals("")) {
+                if (newValue.equals(EMPTY_STRING)) {
                     newButton.setDisable(true);
                     saveButton.setDisable(true);
                 }

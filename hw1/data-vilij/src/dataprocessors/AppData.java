@@ -33,11 +33,15 @@ public class AppData implements DataComponent {
         // TODO for homework 1
         try {
             processor.processString(dataString);
+            // TODO: If there is invalid data, the chart should not be updated.
         }
         catch (Exception e) {
             applicationTemplate
                     .getDialog(Dialog.DialogType.ERROR)
                     .show("Error", "There exists a line that does not follow .tsd formatting.");
+            // TODO: Do not update graph if it is not in proper formatting!
+            // Right now, the error dialog appears, but the moment the user closes the dialog, the chart updates.
+
         }
     }
 
@@ -48,7 +52,7 @@ public class AppData implements DataComponent {
 
     @Override
     public void clear() {
-        //processor.clear();
+        processor.clear();
     }
 
     public void displayData() {

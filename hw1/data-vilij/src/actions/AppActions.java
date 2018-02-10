@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import ui.AppUI;
 import ui.DataVisualizer;
 import vilij.components.ActionComponent;
 import vilij.components.ConfirmationDialog;
@@ -39,14 +40,35 @@ public final class AppActions implements ActionComponent {
         // TODO for homework 1
         // Confirmation dialog appears, asking Y/N/Cancel.
         // TODO: Hard-coded...
+        try {
+            applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION).show("Confirmation", "Confirmation Message");
 
-        applicationTemplate
-                .getDialog(Dialog.DialogType.CONFIRMATION)
-                .show("Confirmation", "Confirmation Message");
+            // TODO: When "YES" is clicked, prompt to save the file.
 
-        // TODO: When "YES" is clicked, prompt to save the file.
-        /* ConfirmationDialog.Option option =  ((ConfirmationDialog) (applicationTemplate
-                .getDialog(Dialog.DialogType.CONFIRMATION))).getSelectedOption(); */
+            ConfirmationDialog.Option option =
+                    ((ConfirmationDialog) (applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION)))
+                            .getSelectedOption();
+
+            if (option == ConfirmationDialog.Option.YES) {
+                promptToSave();
+                // TODO: On keypress ESC, the user will return back to the main interface.
+
+            }
+
+            if (option == ConfirmationDialog.Option.NO) {
+                // TODO: Confirmation log will disappear. Text area is empty. Disabled New/Save.
+                // dialog.close()
+                applicationTemplate.getUIComponent().clear();
+            }
+
+            if (option == ConfirmationDialog.Option.CANCEL) {
+                // TODO: The user will return back to the main interface.
+                // By default, it works that way.
+            }
+        }
+        catch (IOException e) {
+            System.out.println("..."); // Change this.
+        }
 
         /* List<ConfirmationDialog.Option> options =
                 Arrays.asList(ConfirmationDialog.Option.values()); */
@@ -96,12 +118,10 @@ public final class AppActions implements ActionComponent {
         // TODO for homework 1
         // TODO remove the placeholder line below after you have implemented this method
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Testing");
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter( "Tab-Separated Data File", ".*.tsd")
+                new FileChooser.ExtensionFilter( "Tab-Separated Data File (.*.tsd)", "*.tsd")
         );
-        File selectedFile = fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
-
+        fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
         return true;
     }
 }
