@@ -94,12 +94,10 @@ public final class AppUI extends UITemplate {
         // TODO for homework 1
 
         // Remove plotted data in chart
-        while (!chart.getData().isEmpty()){
-            chart.getData().remove(0); // what about maps?
-        }
+        chart.getData().clear();
 
         // Remove previous text
-        textArea.setText(EMPTY_STRING);
+        textArea.clear();
     }
 
     private void layout() {
@@ -113,7 +111,7 @@ public final class AppUI extends UITemplate {
         Label text = new Label("Data File");
         textArea = new TextArea();
         displayButton = new Button("Display");
-        leftSide.getChildren().addAll(text, textArea, displayButton);
+            leftSide.getChildren().addAll(text, textArea, displayButton);
         container.setLeft(leftSide);
 
         chart = new ScatterChart<>(new NumberAxis(), new NumberAxis());
@@ -129,7 +127,11 @@ public final class AppUI extends UITemplate {
 
         // Segment: Display Button
         displayButton.setOnAction(e -> {
+            ScatterChart chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
             ((AppData)(applicationTemplate.getDataComponent())).loadData(textArea.getText());
+            if (!(chart.getData().isEmpty())) {
+                chart.getData().clear();
+            }
             ((AppData)(applicationTemplate.getDataComponent())).displayData();
         });
 
@@ -137,7 +139,7 @@ public final class AppUI extends UITemplate {
         textArea.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if (newValue.equals(EMPTY_STRING)) {
+                if (newValue.equals(EMPTY_STRING)) { // hasNewText
                     newButton.setDisable(true);
                     saveButton.setDisable(true);
                 }
@@ -147,6 +149,5 @@ public final class AppUI extends UITemplate {
                 }
             }
         });
-
     }
 }

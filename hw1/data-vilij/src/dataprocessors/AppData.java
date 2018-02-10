@@ -33,7 +33,6 @@ public class AppData implements DataComponent {
         // TODO for homework 1
         try {
             processor.processString(dataString);
-            // TODO: If there is invalid data, the chart should not be updated.
         }
         catch (Exception e) {
             applicationTemplate

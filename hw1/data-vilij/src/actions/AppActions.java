@@ -2,6 +2,7 @@ package actions;
 
 import javafx.application.Platform;
 import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import ui.AppUI;
@@ -13,6 +14,7 @@ import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -30,6 +32,7 @@ public final class AppActions implements ActionComponent {
 
     /** Path to the data file currently active. */
     Path dataFilePath;
+    FileWriter fileWriter;
 
     public AppActions(ApplicationTemplate applicationTemplate) {
         this.applicationTemplate = applicationTemplate;
@@ -41,7 +44,8 @@ public final class AppActions implements ActionComponent {
         // Confirmation dialog appears, asking Y/N/Cancel.
         // TODO: Hard-coded...
         try {
-            applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION).show("Confirmation", "Confirmation Message");
+            applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION)
+                    .show("Save Current Work", "Would you like to save current work?");
 
             // TODO: When "YES" is clicked, prompt to save the file.
 
@@ -50,9 +54,17 @@ public final class AppActions implements ActionComponent {
                             .getSelectedOption();
 
             if (option == ConfirmationDialog.Option.YES) {
-                promptToSave();
+                if (promptToSave()) {
+                    String dir = dataFilePath.getParent().toString();
+                    String fileName = dataFilePath.getFileName().toString();
+                    File file = new File(dir, fileName);
+                    fileWriter = new FileWriter(file);
+                    // Instead of this, write what was in the text area.
+                    //fileWriter.write();
+                    fileWriter.flush();
+                }
                 // TODO: On keypress ESC, the user will return back to the main interface.
-
+                // On keypress ESC, the window closes by itself. Nothing to implement.
             }
 
             if (option == ConfirmationDialog.Option.NO) {
@@ -62,17 +74,12 @@ public final class AppActions implements ActionComponent {
             }
 
             if (option == ConfirmationDialog.Option.CANCEL) {
-                // TODO: The user will return back to the main interface.
                 // By default, it works that way.
             }
         }
         catch (IOException e) {
             System.out.println("..."); // Change this.
         }
-
-        /* List<ConfirmationDialog.Option> options =
-                Arrays.asList(ConfirmationDialog.Option.values()); */
-
 
     }
 
@@ -121,7 +128,12 @@ public final class AppActions implements ActionComponent {
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter( "Tab-Separated Data File (.*.tsd)", "*.tsd")
         );
-        fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
-        return true;
+        File selectedFile = fileChooser.showSaveDialog( applicationTemplate.getUIComponent().getPrimaryWindow() );
+
+        if (selectedFile != null) {
+            dataFilePath = selectedFile.toPath();
+            return true;
+        }
+        else return false;
     }
 }
