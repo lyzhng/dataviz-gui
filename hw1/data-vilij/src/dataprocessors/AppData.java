@@ -3,8 +3,6 @@ package dataprocessors;
 import ui.AppUI;
 import vilij.components.DataComponent;
 import vilij.components.Dialog;
-import vilij.components.ErrorDialog;
-import vilij.settings.InitializationParams;
 import vilij.settings.PropertyTypes;
 import vilij.templates.ApplicationTemplate;
 
@@ -40,7 +38,7 @@ public class AppData implements DataComponent {
             applicationTemplate
                     .getDialog(Dialog.DialogType.ERROR)
                     .show(applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name()),
-                            applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name()));
+                            applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name()) + e.getMessage());
             // TODO: Do not update graph if it is not in proper formatting!
 
         }

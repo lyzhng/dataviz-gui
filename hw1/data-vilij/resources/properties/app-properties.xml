@@ -32,6 +32,9 @@ functionality within the main workspace. -->
         <property name="TEXT_AREA" value="text area"/>
         <property name="SPECIFIED_FILE" value=" specified file"/>
 
+        <property name="DISPLAY_LABEL" value="Display"/>
+
+
     </property_list>
     <property_options_list/>
 </properties>

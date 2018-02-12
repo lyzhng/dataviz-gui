@@ -31,5 +31,10 @@ public enum AppPropertyTypes {
     DATA_FILE_EXT,
     DATA_FILE_EXT_DESC,
     TEXT_AREA,
-    SPECIFIED_FILE
+    SPECIFIED_FILE,
+
+    // Just added
+    /* application-specific parameters */
+    DISPLAY_LABEL,
+
 }

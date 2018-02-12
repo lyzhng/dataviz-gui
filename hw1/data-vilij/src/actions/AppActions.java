@@ -1,24 +1,17 @@
 package actions;
 
 import javafx.application.Platform;
-import javafx.scene.control.Button;
-import javafx.scene.input.KeyCode;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 import ui.AppUI;
-import ui.DataVisualizer;
 import vilij.components.ActionComponent;
 import vilij.components.ConfirmationDialog;
 import vilij.components.Dialog;
 import vilij.templates.ApplicationTemplate;
-import vilij.templates.UITemplate;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
 
 import static settings.AppPropertyTypes.*;
 
@@ -56,25 +49,10 @@ public final class AppActions implements ActionComponent {
                             .getSelectedOption();
 
             if (option == ConfirmationDialog.Option.YES) {
-                if (promptToSave()) {
-                    String dir = dataFilePath.getParent().toString();
-                    String fileName = dataFilePath.getFileName().toString();
-                    File file = new File(dir, fileName);
-                    fileWriter = new FileWriter(file);
-
-                    String text = ((AppUI) (applicationTemplate.getUIComponent())).getText();
-                    for (String s : text.split("\n"))
-                        fileWriter.write(s + "\n");
-
-                    fileWriter.flush();
-                }
-                // TODO: On keypress ESC, the user will return back to the main interface.
-                // On keypress ESC, the window closes by itself. Nothing to implement.
+                promptToSave();
             }
 
             if (option == ConfirmationDialog.Option.NO) {
-                // TODO: Confirmation log will disappear. Text area is empty. Disabled New/Save.
-                // dialog.close()
                 applicationTemplate.getUIComponent().clear();
             }
 
@@ -137,12 +115,22 @@ public final class AppActions implements ActionComponent {
         );
         File selectedFile = fileChooser.showSaveDialog( applicationTemplate.getUIComponent().getPrimaryWindow() );
 
-        if (selectedFile != null) {
+        if (selectedFile != null)
             dataFilePath = selectedFile.toPath();
-            return true;
-        }
-
         else
-            return false;
+            throw new IOException();
+
+        String dir = dataFilePath.getParent().toString();
+        String fileName = dataFilePath.getFileName().toString();
+        File file = new File(dir, fileName);
+        fileWriter = new FileWriter(file);
+
+        String text = ((AppUI) (applicationTemplate.getUIComponent())).getText();
+        for (String s : text.split("\n"))
+            fileWriter.write(s + "\n");
+
+        fileWriter.flush();
+
+        return true;
     }
 }
