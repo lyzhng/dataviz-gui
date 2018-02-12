@@ -150,4 +150,7 @@ public final class AppUI extends UITemplate {
             }
         });
     }
+    public String getText() {
+        return textArea.getText();
+    }
 }

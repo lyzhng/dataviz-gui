@@ -20,6 +20,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
+import static settings.AppPropertyTypes.*;
+
 /**
  * This is the concrete implementation of the action handlers required by the application.
  *
@@ -45,7 +47,7 @@ public final class AppActions implements ActionComponent {
         // TODO: Hard-coded...
         try {
             applicationTemplate.getDialog(Dialog.DialogType.CONFIRMATION)
-                    .show("Save Current Work", "Would you like to save current work?");
+                    .show( applicationTemplate.manager.getPropertyValue(SAVE_UNSAVED_WORK_TITLE.name()), applicationTemplate.manager.getPropertyValue(SAVE_UNSAVED_WORK.name()));
 
             // TODO: When "YES" is clicked, prompt to save the file.
 
@@ -59,8 +61,11 @@ public final class AppActions implements ActionComponent {
                     String fileName = dataFilePath.getFileName().toString();
                     File file = new File(dir, fileName);
                     fileWriter = new FileWriter(file);
-                    // Instead of this, write what was in the text area.
-                    //fileWriter.write();
+
+                    String text = ((AppUI) (applicationTemplate.getUIComponent())).getText();
+                    for (String s : text.split("\n"))
+                        fileWriter.write(s + "\n");
+
                     fileWriter.flush();
                 }
                 // TODO: On keypress ESC, the user will return back to the main interface.
@@ -78,7 +83,9 @@ public final class AppActions implements ActionComponent {
             }
         }
         catch (IOException e) {
-            System.out.println("..."); // Change this.
+            applicationTemplate.
+                    getDialog(Dialog.DialogType.ERROR)
+                    .show( applicationTemplate.manager.getPropertyValue(RESOURCE_SUBDIR_NOT_FOUND.name()) , e.getMessage());
         }
 
     }
@@ -126,7 +133,7 @@ public final class AppActions implements ActionComponent {
         // TODO remove the placeholder line below after you have implemented this method
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter( "Tab-Separated Data File (.*.tsd)", "*.tsd")
+                new FileChooser.ExtensionFilter( applicationTemplate.manager.getPropertyValue(DATA_FILE_EXT_DESC.name()), DATA_FILE_EXT.name())
         );
         File selectedFile = fileChooser.showSaveDialog( applicationTemplate.getUIComponent().getPrimaryWindow() );
 
@@ -134,6 +141,8 @@ public final class AppActions implements ActionComponent {
             dataFilePath = selectedFile.toPath();
             return true;
         }
-        else return false;
+
+        else
+            return false;
     }
 }

@@ -4,6 +4,8 @@ import ui.AppUI;
 import vilij.components.DataComponent;
 import vilij.components.Dialog;
 import vilij.components.ErrorDialog;
+import vilij.settings.InitializationParams;
+import vilij.settings.PropertyTypes;
 import vilij.templates.ApplicationTemplate;
 
 import java.nio.file.Path;
@@ -37,9 +39,9 @@ public class AppData implements DataComponent {
         catch (Exception e) {
             applicationTemplate
                     .getDialog(Dialog.DialogType.ERROR)
-                    .show("Error", "There exists a line that does not follow .tsd formatting.");
+                    .show(applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name()),
+                            applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name()));
             // TODO: Do not update graph if it is not in proper formatting!
-            // Right now, the error dialog appears, but the moment the user closes the dialog, the chart updates.
 
         }
     }
