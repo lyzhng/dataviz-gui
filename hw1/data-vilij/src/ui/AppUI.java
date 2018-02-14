@@ -2,26 +2,20 @@ package ui;
 
 import actions.AppActions;
 import dataprocessors.AppData;
-import dataprocessors.TSDProcessor;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import settings.AppPropertyTypes;
 import vilij.settings.PropertyTypes;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
-
-import java.nio.file.Paths;
 
 /**
  * This is the application's user interface implementation.
@@ -40,7 +34,7 @@ public final class AppUI extends UITemplate {
     private TextArea                     textArea;       // text area for new data input
     private boolean                      hasNewText;     // whether or not the text area has any new data since last display
 
-    private static final String EMPTY_STRING = "";
+    private static final String SEPARATOR = "/";
     public ScatterChart<Number, Number> getChart() { return chart; }
 
     public AppUI(Stage primaryStage, ApplicationTemplate applicationTemplate) {
@@ -56,14 +50,13 @@ public final class AppUI extends UITemplate {
     @Override
     protected void setToolBar(ApplicationTemplate applicationTemplate) {
         // TODO for homework 1
-        // Changed
         super.setToolBar(applicationTemplate);
         String iconsPath =
-                "/" + String.join("/",
+                SEPARATOR + String.join(SEPARATOR,
                 applicationTemplate.manager.getPropertyValue(PropertyTypes.GUI_RESOURCE_PATH.name()),
                 applicationTemplate.manager.getPropertyValue(PropertyTypes.ICONS_RESOURCE_PATH.name()));
         String scrnshotPath =
-                String.join("/",
+                String.join(SEPARATOR,
                         iconsPath,
                         applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_ICON.name()));
         scrnshotButton =
@@ -92,29 +85,28 @@ public final class AppUI extends UITemplate {
     @Override
     public void clear() {
         // TODO for homework 1
-
-        // Remove plotted data in chart
         chart.getData().clear();
-
-        // Remove previous text
         textArea.clear();
     }
 
     private void layout() {
         // TODO for homework 1
+
         BorderPane container = new BorderPane();
         workspace = new Pane();
 
         VBox leftSide = new VBox(5);
         leftSide.setMaxWidth(400);
         leftSide.setPadding(new Insets(20, 20, 20, 20));
-        Label text = new Label("Data File");
+        Label text = new Label(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_FILE_LABEL.name()));
         textArea = new TextArea();
-        displayButton = new Button("Display");
+
+        displayButton = new Button(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DISPLAY_LABEL.name()));
             leftSide.getChildren().addAll(text, textArea, displayButton);
         container.setLeft(leftSide);
 
         chart = new ScatterChart<>(new NumberAxis(), new NumberAxis());
+        chart.setTitle(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_TITLE.name()));
         container.setRight(chart);
 
         workspace.getChildren().addAll(container);
@@ -125,7 +117,6 @@ public final class AppUI extends UITemplate {
     private void setWorkspaceActions() {
         // TODO for homework 1
 
-        // Segment: Display Button
         displayButton.setOnAction(e -> {
             ScatterChart chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
             ((AppData)(applicationTemplate.getDataComponent())).loadData(textArea.getText());
@@ -135,11 +126,10 @@ public final class AppUI extends UITemplate {
             ((AppData)(applicationTemplate.getDataComponent())).displayData();
         });
 
-        // Segment: New/Save Buttons
         textArea.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if (newValue.equals(EMPTY_STRING)) { // hasNewText
+                if ( hasNewText = newValue.isEmpty() ) {
                     newButton.setDisable(true);
                     saveButton.setDisable(true);
                 }

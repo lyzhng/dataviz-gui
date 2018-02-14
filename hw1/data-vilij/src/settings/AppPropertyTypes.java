@@ -36,5 +36,10 @@ public enum AppPropertyTypes {
     // Just added
     /* application-specific parameters */
     DISPLAY_LABEL,
-
+    DATA_FILE_LABEL,
+    CHART_TITLE,
+    TSD_EXT_TITLE,
+    HW1_DIR,
+    DATAV_DIR,
+    RSC_DIR
 }

@@ -33,7 +33,12 @@ functionality within the main workspace. -->
         <property name="SPECIFIED_FILE" value=" specified file"/>
 
         <property name="DISPLAY_LABEL" value="Display"/>
-
+        <property name="DATA_FILE_LABEL" value="Data File"/>
+        <property name="CHART_TITLE" value="Data Visualization"/>
+        <property name="TSD_EXT_TITLE" value=" (.*.tsd)"/>
+        <property name="HW1_DIR" value="/hw1"/>
+        <property name="DATAV_DIR" value="/data-vilij"/>
+        <property name="RSC_DIR" value="/resources"/>
 
     </property_list>
     <property_options_list/>
