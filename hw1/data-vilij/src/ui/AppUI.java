@@ -139,11 +139,12 @@ public final class AppUI extends UITemplate {
     private void setTextAreaActions() {
         textArea.textProperty().addListener((observable, oldValue, newValue) -> {
             try {
-                if (!newValue.isEmpty() && newValue.charAt(newValue.length() - 1) == '\n') {
+                if (!newValue.equals(oldValue)) {
+                    ((AppActions) applicationTemplate.getActionComponent()).setIsUnsavedProperty(true);
+                    if (newValue.charAt(newValue.length() - 1) == '\n' || newValue.isEmpty())
+                        hasNewText = true;
                     newButton.setDisable(false);
                     saveButton.setDisable(false);
-                    ((AppActions) applicationTemplate.getActionComponent()).setIsUnsavedProperty(true);
-                    hasNewText = true;
                 }
             } catch (IndexOutOfBoundsException e) {
                 System.err.println(newValue);
@@ -157,6 +158,7 @@ public final class AppUI extends UITemplate {
                 try {
                     chart.getData().clear();
                     AppData dataComponent = (AppData) applicationTemplate.getDataComponent();
+                    dataComponent.clear();
                     dataComponent.loadData(textArea.getText());
                     dataComponent.displayData();
                 } catch (Exception e) {
