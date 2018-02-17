@@ -1,12 +1,28 @@
 package ui;
 
 import actions.AppActions;
+import dataprocessors.AppData;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import settings.AppPropertyTypes;
+import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
+
+import static java.io.File.separator;
+import static vilij.settings.PropertyTypes.GUI_RESOURCE_PATH;
+import static vilij.settings.PropertyTypes.ICONS_RESOURCE_PATH;
 
 /**
  * This is the application's user interface implementation.
@@ -39,7 +55,18 @@ public final class AppUI extends UITemplate {
 
     @Override
     protected void setToolBar(ApplicationTemplate applicationTemplate) {
-        // TODO for homework 1
+        super.setToolBar(applicationTemplate);
+        PropertyManager manager = applicationTemplate.manager;
+        String iconsPath = separator + String.join(separator,
+                                                   manager.getPropertyValue(GUI_RESOURCE_PATH.name()),
+                                                   manager.getPropertyValue(ICONS_RESOURCE_PATH.name()));
+        String scrnshoticonPath = String.join(separator,
+                                              iconsPath,
+                                              manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_ICON.name()));
+        scrnshotButton = setToolbarButton(scrnshoticonPath,
+                                          manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_TOOLTIP.name()),
+                                          true);
+        toolBar.getItems().add(scrnshotButton);
     }
 
     @Override
@@ -60,14 +87,83 @@ public final class AppUI extends UITemplate {
 
     @Override
     public void clear() {
-        // TODO for homework 1
+        textArea.clear();
+        chart.getData().clear();
     }
 
+    public String getCurrentText() { return textArea.getText(); }
+
     private void layout() {
-        // TODO for homework 1
+        NumberAxis xAxis = new NumberAxis();
+        NumberAxis yAxis = new NumberAxis();
+        chart = new ScatterChart<>(xAxis, yAxis);
+        chart.setTitle("Data Visualization");
+
+        VBox leftPanel = new VBox(8);
+        leftPanel.setAlignment(Pos.TOP_CENTER);
+        leftPanel.setPadding(new Insets(10));
+
+        VBox.setVgrow(leftPanel, Priority.ALWAYS);
+        leftPanel.setMaxSize(windowWidth * 0.29, windowHeight * 0.3);
+        leftPanel.setMinSize(windowWidth * 0.29, windowHeight * 0.3);
+
+        Text leftPanelTitle = new Text("Data File");
+        leftPanelTitle.setFont(Font.font("SansSerif", 18));
+
+        textArea = new TextArea();
+
+        HBox processButtonsBox = new HBox();
+        displayButton = new Button("Display");
+        HBox.setHgrow(processButtonsBox, Priority.ALWAYS);
+        processButtonsBox.getChildren().add(displayButton);
+
+        leftPanel.getChildren().addAll(leftPanelTitle, textArea, processButtonsBox);
+
+        StackPane rightPanel = new StackPane(chart);
+        rightPanel.setMaxSize(windowWidth * 0.69, windowHeight * 0.69);
+        rightPanel.setMinSize(windowWidth * 0.69, windowHeight * 0.69);
+        StackPane.setAlignment(rightPanel, Pos.CENTER);
+
+        workspace = new HBox(leftPanel, rightPanel);
+        HBox.setHgrow(workspace, Priority.ALWAYS);
+
+        appPane.getChildren().add(workspace);
+        VBox.setVgrow(appPane, Priority.ALWAYS);
     }
 
     private void setWorkspaceActions() {
-        // TODO for homework 1
+        setTextAreaActions();
+        setDisplayButtonActions();
+    }
+
+    private void setTextAreaActions() {
+        textArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            try {
+                if (!newValue.isEmpty() && newValue.charAt(newValue.length() - 1) == '\n') {
+                    newButton.setDisable(false);
+                    saveButton.setDisable(false);
+                    ((AppActions) applicationTemplate.getActionComponent()).setIsUnsavedProperty(true);
+                    hasNewText = true;
+                }
+            } catch (IndexOutOfBoundsException e) {
+                System.err.println(newValue);
+            }
+        });
+    }
+
+    private void setDisplayButtonActions() {
+        displayButton.setOnAction(event -> {
+            if (hasNewText) {
+                try {
+                    chart.getData().clear();
+                    AppData dataComponent = (AppData) applicationTemplate.getDataComponent();
+                    dataComponent.loadData(textArea.getText());
+                    dataComponent.displayData();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
     }
 }
