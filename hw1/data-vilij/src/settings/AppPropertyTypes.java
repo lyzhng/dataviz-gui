@@ -41,5 +41,7 @@ public enum AppPropertyTypes {
     TSD_EXT_TITLE,
     HW1_DIR,
     DATAV_DIR,
-    RSC_DIR
+    RSC_DIR,
+    INITIAL_FILE_NAME,
+
 }

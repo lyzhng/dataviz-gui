@@ -2,8 +2,6 @@ package ui;
 
 import actions.AppActions;
 import dataprocessors.AppData;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
@@ -126,17 +124,15 @@ public final class AppUI extends UITemplate {
             ((AppData)(applicationTemplate.getDataComponent())).displayData();
         });
 
-        textArea.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if ( hasNewText = newValue.isEmpty() ) {
-                    newButton.setDisable(true);
-                    saveButton.setDisable(true);
-                }
-                else {
-                    newButton.setDisable(false);
-                    saveButton.setDisable(false);
-                }
+        textArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            hasNewText = newValue.isEmpty();
+            if ( hasNewText ) {
+                newButton.setDisable(true);
+                saveButton.setDisable(true);
+            }
+            else {
+                newButton.setDisable(false);
+                saveButton.setDisable(false);
             }
         });
     }

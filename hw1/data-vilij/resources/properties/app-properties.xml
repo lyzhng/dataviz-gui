@@ -39,6 +39,7 @@ functionality within the main workspace. -->
         <property name="HW1_DIR" value="/hw1"/>
         <property name="DATAV_DIR" value="/data-vilij"/>
         <property name="RSC_DIR" value="/resources"/>
+        <property name="INITIAL_FILE_NAME" value="Untitled.tsd"/>
 
     </property_list>
     <property_options_list/>
