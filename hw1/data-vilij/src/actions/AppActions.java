@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static settings.AppPropertyTypes.*;
 
@@ -129,6 +130,7 @@ public final class AppActions implements ActionComponent {
         File location = new File(hw1_dir.substring(1) + datav_dir + rsc_dir + File.separator + data_dir);
 
         // fileChooser.setInitialDirectory(new File("hw1/data-vilij/resources/data"));
+        // /Users/lilyzhong/IdeaProjects/cse219homework/hw1/data-vilij/resources/data
 
         if (!location.exists()) {
             throw new IOException();
