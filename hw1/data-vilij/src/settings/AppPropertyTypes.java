@@ -39,9 +39,6 @@ public enum AppPropertyTypes {
     DATA_FILE_LABEL,
     CHART_TITLE,
     TSD_EXT_TITLE,
-    HW1_DIR,
-    DATAV_DIR,
-    RSC_DIR,
     INITIAL_FILE_NAME,
-
+    SEPARATOR
 }

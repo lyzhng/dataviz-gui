@@ -14,7 +14,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static settings.AppPropertyTypes.*;
 
@@ -58,15 +57,12 @@ public final class AppActions implements ActionComponent {
                 applicationTemplate.getUIComponent().clear();
             }
 
-            if (option == ConfirmationDialog.Option.CANCEL) {
-                // By default, it works that way.
-            }
         }
         catch (IOException e) {
             applicationTemplate.
                     getDialog(Dialog.DialogType.ERROR)
                     .show( applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_TITLE.name()) ,
-                            applicationTemplate.manager.getPropertyValue(AppPropertyTypes.RESOURCE_SUBDIR_NOT_FOUND.name()));
+                            applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SAVE_UNSAVED_WORK.name()));
 
         }
 
@@ -108,6 +104,10 @@ public final class AppActions implements ActionComponent {
      * want to save the work at this point.</li>
      * </ol>
      *
+     * Edit -->
+     * promptToSave() only appears if the user clicks the YES option. All else will be handled
+     * in handleNewRequest().
+     *
      * @return <code>false</code> if the user presses the <i>cancel</i>, and <code>true</code> otherwise.
      */
 
@@ -121,38 +121,43 @@ public final class AppActions implements ActionComponent {
                         applicationTemplate.manager.getPropertyValue(TSD_EXT_TITLE.name()), DATA_FILE_EXT.name())
         );
 
-        // System.getProperty("user.dir") + "/hw1/data-vilij/resources/data");
-        // /Users/lilyzhong/IdeaProjects/cse219homework/hw1/data-vilij/src/actions/AppActions.java
-        String hw1_dir = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.HW1_DIR.name());
-        String datav_dir = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATAV_DIR.name());
-        String rsc_dir = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.RSC_DIR.name());
-        String data_dir = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_RESOURCE_PATH.name());
-        File location = new File(hw1_dir.substring(1) + datav_dir + rsc_dir + File.separator + data_dir);
+        String path = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SEPARATOR.name()) +
+                applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_RESOURCE_PATH.name());
+        File f = new File(getClass().getResource(path).toString().substring(5));
 
-        // fileChooser.setInitialDirectory(new File("hw1/data-vilij/resources/data"));
-        // /Users/lilyzhong/IdeaProjects/cse219homework/hw1/data-vilij/resources/data
-
-        if (!location.exists()) {
-            throw new IOException();
+        if (!f.exists()) {
+            applicationTemplate.getDialog(Dialog.DialogType.ERROR)
+                    .show(applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_TITLE.name()),
+                    applicationTemplate.manager.getPropertyValue(AppPropertyTypes.RESOURCE_SUBDIR_NOT_FOUND.name()));
+            return false;
         }
 
-        fileChooser.setInitialDirectory(location);
+        fileChooser.setInitialDirectory(f);
+        fileChooser.setInitialFileName(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.INITIAL_FILE_NAME.name()));
 
-        // choose somewhere to save the file
         File selectedFile = fileChooser.showSaveDialog( applicationTemplate.getUIComponent().getPrimaryWindow() );
 
         if (selectedFile != null)
             dataFilePath = selectedFile.toPath();
 
-        else
+        else {
+            /*
+            applicationTemplate.getDialog(Dialog.DialogType.ERROR)
+                    .show(applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_TITLE.name()),
+                            applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_MSG.name()) +
+                                    applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SPECIFIED_FILE.name()
+                            ));
+             */
             return false;
+        }
 
         String dir = dataFilePath.getParent().toString();
         String fileName = dataFilePath.getFileName().toString();
         String ext = applicationTemplate.manager.
                 getPropertyValue(AppPropertyTypes.DATA_FILE_EXT.name());
+
         if (!fileName.contains(ext)) {
-            fileName.concat(ext);
+           fileName += ext;
         }
 
         File file = new File(dir, fileName);
