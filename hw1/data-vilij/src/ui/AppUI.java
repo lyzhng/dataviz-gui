@@ -94,10 +94,11 @@ public final class AppUI extends UITemplate {
     public String getCurrentText() { return textArea.getText(); }
 
     private void layout() {
-        NumberAxis xAxis = new NumberAxis();
-        NumberAxis yAxis = new NumberAxis();
+        PropertyManager manager = applicationTemplate.manager;
+        NumberAxis      xAxis   = new NumberAxis();
+        NumberAxis      yAxis   = new NumberAxis();
         chart = new ScatterChart<>(xAxis, yAxis);
-        chart.setTitle("Data Visualization");
+        chart.setTitle(manager.getPropertyValue(AppPropertyTypes.CHART_TITLE.name()));
 
         VBox leftPanel = new VBox(8);
         leftPanel.setAlignment(Pos.TOP_CENTER);
@@ -107,13 +108,15 @@ public final class AppUI extends UITemplate {
         leftPanel.setMaxSize(windowWidth * 0.29, windowHeight * 0.3);
         leftPanel.setMinSize(windowWidth * 0.29, windowHeight * 0.3);
 
-        Text leftPanelTitle = new Text("Data File");
-        leftPanelTitle.setFont(Font.font("SansSerif", 18));
+        Text   leftPanelTitle = new Text(manager.getPropertyValue(AppPropertyTypes.LEFT_PANE_TITLE.name()));
+        String fontname       = manager.getPropertyValue(AppPropertyTypes.LEFT_PANE_TITLEFONT.name());
+        Double fontsize       = Double.parseDouble(manager.getPropertyValue(AppPropertyTypes.LEFT_PANE_TITLESIZE.name()));
+        leftPanelTitle.setFont(Font.font(fontname, fontsize));
 
         textArea = new TextArea();
 
         HBox processButtonsBox = new HBox();
-        displayButton = new Button("Display");
+        displayButton = new Button(manager.getPropertyValue(AppPropertyTypes.DISPLAY_BUTTON_TEXT.name()));
         HBox.setHgrow(processButtonsBox, Priority.ALWAYS);
         processButtonsBox.getChildren().add(displayButton);
 
