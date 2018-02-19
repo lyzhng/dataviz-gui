@@ -20,7 +20,6 @@ import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
-import static java.io.File.separator;
 import static vilij.settings.PropertyTypes.GUI_RESOURCE_PATH;
 import static vilij.settings.PropertyTypes.ICONS_RESOURCE_PATH;
 
@@ -57,10 +56,10 @@ public final class AppUI extends UITemplate {
     protected void setToolBar(ApplicationTemplate applicationTemplate) {
         super.setToolBar(applicationTemplate);
         PropertyManager manager = applicationTemplate.manager;
-        String iconsPath = separator + String.join(separator,
+        String iconsPath = SEPARATOR + String.join(SEPARATOR,
                                                    manager.getPropertyValue(GUI_RESOURCE_PATH.name()),
                                                    manager.getPropertyValue(ICONS_RESOURCE_PATH.name()));
-        String scrnshoticonPath = String.join(separator,
+        String scrnshoticonPath = String.join(SEPARATOR,
                                               iconsPath,
                                               manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_ICON.name()));
         scrnshotButton = setToolbarButton(scrnshoticonPath,
