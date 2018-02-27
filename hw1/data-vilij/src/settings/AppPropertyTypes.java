@@ -32,13 +32,9 @@ public enum AppPropertyTypes {
     DATA_FILE_EXT_DESC,
     TEXT_AREA,
     SPECIFIED_FILE,
-
-    // Just added
-    /* application-specific parameters */
-    DISPLAY_LABEL,
-    DATA_FILE_LABEL,
+    LEFT_PANE_TITLE,
+    LEFT_PANE_TITLEFONT,
+    LEFT_PANE_TITLESIZE,
     CHART_TITLE,
-    TSD_EXT_TITLE,
-    INITIAL_FILE_NAME,
-    SEPARATOR
+    DISPLAY_BUTTON_TEXT
 }

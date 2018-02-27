@@ -3,17 +3,25 @@ package ui;
 import actions.AppActions;
 import dataprocessors.AppData;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
-import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import settings.AppPropertyTypes;
-import vilij.settings.PropertyTypes;
+import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
+
+import static vilij.settings.PropertyTypes.GUI_RESOURCE_PATH;
+import static vilij.settings.PropertyTypes.ICONS_RESOURCE_PATH;
 
 /**
  * This is the application's user interface implementation.
@@ -32,7 +40,6 @@ public final class AppUI extends UITemplate {
     private TextArea                     textArea;       // text area for new data input
     private boolean                      hasNewText;     // whether or not the text area has any new data since last display
 
-    private static final String SEPARATOR = "/";
     public ScatterChart<Number, Number> getChart() { return chart; }
 
     public AppUI(Stage primaryStage, ApplicationTemplate applicationTemplate) {
@@ -47,21 +54,18 @@ public final class AppUI extends UITemplate {
 
     @Override
     protected void setToolBar(ApplicationTemplate applicationTemplate) {
-        // TODO for homework 1
         super.setToolBar(applicationTemplate);
-        String iconsPath =
-                SEPARATOR + String.join(SEPARATOR,
-                applicationTemplate.manager.getPropertyValue(PropertyTypes.GUI_RESOURCE_PATH.name()),
-                applicationTemplate.manager.getPropertyValue(PropertyTypes.ICONS_RESOURCE_PATH.name()));
-        String scrnshotPath =
-                String.join(SEPARATOR,
-                        iconsPath,
-                        applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_ICON.name()));
-        scrnshotButton =
-                setToolbarButton(scrnshotPath,
-                        applicationTemplate.manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_TOOLTIP.name()),
-                        true);
-        toolBar = new ToolBar(newButton, saveButton, loadButton, printButton, exitButton, scrnshotButton);
+        PropertyManager manager = applicationTemplate.manager;
+        String iconsPath = SEPARATOR + String.join(SEPARATOR,
+                                                   manager.getPropertyValue(GUI_RESOURCE_PATH.name()),
+                                                   manager.getPropertyValue(ICONS_RESOURCE_PATH.name()));
+        String scrnshoticonPath = String.join(SEPARATOR,
+                                              iconsPath,
+                                              manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_ICON.name()));
+        scrnshotButton = setToolbarButton(scrnshoticonPath,
+                                          manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_TOOLTIP.name()),
+                                          true);
+        toolBar.getItems().add(scrnshotButton);
     }
 
     @Override
@@ -82,61 +86,94 @@ public final class AppUI extends UITemplate {
 
     @Override
     public void clear() {
-        // TODO for homework 1
-        chart.getData().clear();
         textArea.clear();
+        chart.getData().clear();
     }
 
+    public String getCurrentText() { return textArea.getText(); }
+
     private void layout() {
-        // TODO for homework 1
+        PropertyManager manager = applicationTemplate.manager;
+        NumberAxis      xAxis   = new NumberAxis();
+        NumberAxis      yAxis   = new NumberAxis();
+        chart = new ScatterChart<>(xAxis, yAxis);
+        chart.setTitle(manager.getPropertyValue(AppPropertyTypes.CHART_TITLE.name()));
 
-        BorderPane container = new BorderPane();
-        workspace = new Pane();
+        VBox leftPanel = new VBox(8);
+        leftPanel.setAlignment(Pos.TOP_CENTER);
+        leftPanel.setPadding(new Insets(10));
 
-        VBox leftSide = new VBox(5);
-        leftSide.setMaxWidth(400);
-        leftSide.setPadding(new Insets(20, 20, 20, 20));
-        Label text = new Label(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_FILE_LABEL.name()));
+        VBox.setVgrow(leftPanel, Priority.ALWAYS);
+        leftPanel.setMaxSize(windowWidth * 0.29, windowHeight * 0.3);
+        leftPanel.setMinSize(windowWidth * 0.29, windowHeight * 0.3);
+
+        Text   leftPanelTitle = new Text(manager.getPropertyValue(AppPropertyTypes.LEFT_PANE_TITLE.name()));
+        String fontname       = manager.getPropertyValue(AppPropertyTypes.LEFT_PANE_TITLEFONT.name());
+        Double fontsize       = Double.parseDouble(manager.getPropertyValue(AppPropertyTypes.LEFT_PANE_TITLESIZE.name()));
+        leftPanelTitle.setFont(Font.font(fontname, fontsize));
+
         textArea = new TextArea();
 
-        displayButton = new Button(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DISPLAY_LABEL.name()));
-            leftSide.getChildren().addAll(text, textArea, displayButton);
-        container.setLeft(leftSide);
+        HBox processButtonsBox = new HBox();
+        displayButton = new Button(manager.getPropertyValue(AppPropertyTypes.DISPLAY_BUTTON_TEXT.name()));
+        HBox.setHgrow(processButtonsBox, Priority.ALWAYS);
+        processButtonsBox.getChildren().add(displayButton);
 
-        chart = new ScatterChart<>(new NumberAxis(), new NumberAxis());
-        chart.setTitle(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_TITLE.name()));
-        container.setRight(chart);
+        leftPanel.getChildren().addAll(leftPanelTitle, textArea, processButtonsBox);
 
-        workspace.getChildren().addAll(container);
-        appPane.getChildren().addAll(workspace);
-        primaryStage.setScene(primaryScene);
+        StackPane rightPanel = new StackPane(chart);
+        rightPanel.setMaxSize(windowWidth * 0.69, windowHeight * 0.69);
+        rightPanel.setMinSize(windowWidth * 0.69, windowHeight * 0.69);
+        StackPane.setAlignment(rightPanel, Pos.CENTER);
+
+        workspace = new HBox(leftPanel, rightPanel);
+        HBox.setHgrow(workspace, Priority.ALWAYS);
+
+        appPane.getChildren().add(workspace);
+        VBox.setVgrow(appPane, Priority.ALWAYS);
     }
 
     private void setWorkspaceActions() {
-        // TODO for homework 1
+        setTextAreaActions();
+        setDisplayButtonActions();
+    }
 
-        displayButton.setOnAction(e -> {
-            ScatterChart chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
-            ((AppData)(applicationTemplate.getDataComponent())).loadData(textArea.getText());
-            if (!(chart.getData().isEmpty())) {
-                chart.getData().clear();
-            }
-            ((AppData)(applicationTemplate.getDataComponent())).displayData();
-        });
-
+    private void setTextAreaActions() {
         textArea.textProperty().addListener((observable, oldValue, newValue) -> {
-            hasNewText = newValue.isEmpty();
-            if ( hasNewText ) {
-                newButton.setDisable(true);
-                saveButton.setDisable(true);
-            }
-            else {
-                newButton.setDisable(false);
-                saveButton.setDisable(false);
+            try {
+                if (!newValue.equals(oldValue)) {
+                    ((AppActions) applicationTemplate.getActionComponent()).setIsUnsavedProperty(true);
+                    if (newValue.charAt(newValue.length() - 1) == '\n' || newValue.isEmpty()) {
+                        hasNewText = true;
+                    }
+                    if (hasNewText) {
+                        newButton.setDisable(true);
+                        saveButton.setDisable(true);
+                    }
+                    newButton.setDisable(false);
+                    saveButton.setDisable(false);
+                }
+            } catch (IndexOutOfBoundsException e) {
+                System.err.println(newValue);
             }
         });
     }
-    public String getText() {
-        return textArea.getText();
+
+    private void setDisplayButtonActions() {
+        displayButton.setOnAction(event -> {
+            if (hasNewText) {
+                try {
+                    chart.getData().clear();
+                    AppData dataComponent = (AppData) applicationTemplate.getDataComponent();
+                    dataComponent.clear();
+                    dataComponent.loadData(textArea.getText());
+                    dataComponent.displayData();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
     }
+
 }

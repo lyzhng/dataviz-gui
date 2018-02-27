@@ -24,7 +24,7 @@ import static vilij.settings.PropertyTypes.*;
  */
 public class UITemplate implements UIComponent {
 
-    private static final String SEPARATOR = "/";
+    protected static final String SEPARATOR = "/";
     private static final String UI_NOT_INITIALIZABLE_FOR_TEMPLATES = "The graphical user interface cannot be " +
                                                                      "initialized at template-level. A child " +
                                                                      "class must be implemented.";

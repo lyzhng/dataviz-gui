@@ -47,9 +47,9 @@ public class ConfirmationDialog extends Stage implements Dialog {
         return dialog;
     }
 
-    private void setConfirmationMessage(String message) {
-        this.confirmationMessage.setText(message);
-    }
+    private void setConfirmationMessage(String message) { confirmationMessage.setText(message); }
+
+    private void deleteOptionHistory()                  { selectedOption = null; }
 
     /**
      * Completely initializes the error dialog to be used.
@@ -89,6 +89,7 @@ public class ConfirmationDialog extends Stage implements Dialog {
      */
     @Override
     public void show(String dialogTitle, String message) {
+        deleteOptionHistory();           // delete any previously selected option
         setTitle(dialogTitle);           // set the title of the dialog
         setConfirmationMessage(message); // set the main error message
         showAndWait();                   // open the dialog and wait for the user to click the close button
