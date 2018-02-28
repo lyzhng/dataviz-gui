@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -116,8 +117,9 @@ public final class AppUI extends UITemplate {
 
         HBox processButtonsBox = new HBox();
         displayButton = new Button(manager.getPropertyValue(AppPropertyTypes.DISPLAY_BUTTON_TEXT.name()));
+        CheckBox checkBox = new CheckBox("read-only");
         HBox.setHgrow(processButtonsBox, Priority.ALWAYS);
-        processButtonsBox.getChildren().add(displayButton);
+        processButtonsBox.getChildren().addAll(displayButton, checkBox); // change margin
 
         leftPanel.getChildren().addAll(leftPanelTitle, textArea, processButtonsBox);
 
@@ -171,9 +173,11 @@ public final class AppUI extends UITemplate {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
             }
         });
     }
 
+    public TextArea getTextArea() {
+        return textArea;
+    }
 }

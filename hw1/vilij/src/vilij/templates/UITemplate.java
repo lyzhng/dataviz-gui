@@ -149,4 +149,7 @@ public class UITemplate implements UIComponent {
         /* squelch */
     }
 
+    public Button getSaveButton() {
+        return saveButton;
+    }
 }

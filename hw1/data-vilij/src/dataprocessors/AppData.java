@@ -1,5 +1,6 @@
 package dataprocessors;
 
+import javafx.stage.FileChooser;
 import settings.AppPropertyTypes;
 import ui.AppUI;
 import vilij.components.DataComponent;
@@ -9,8 +10,7 @@ import vilij.propertymanager.PropertyManager;
 import vilij.settings.PropertyTypes;
 import vilij.templates.ApplicationTemplate;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -32,7 +32,23 @@ public class AppData implements DataComponent {
 
     @Override
     public void loadData(Path dataFilePath) {
-        // TODO: NOT A PART OF HW 1
+        int lineCounter = 1;
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(dataFilePath.toFile()));
+            String line;
+            StringBuilder stringBuilder = new StringBuilder();
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+                stringBuilder.append("\n");
+                lineCounter++;
+            }
+            ((AppUI) applicationTemplate.getUIComponent()).getTextArea().setText(stringBuilder.toString());
+            processor.processString(stringBuilder.toString());
+        }
+        catch (Exception e) {
+            // Do something... Error dialog.
+            System.out.println("There was an error loading line " + lineCounter);
+        }
     }
 
     public void loadData(String dataString) {
@@ -44,7 +60,7 @@ public class AppData implements DataComponent {
             String          errTitle = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
             String          errMsg   = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name());
             String          errInput = manager.getPropertyValue(AppPropertyTypes.TEXT_AREA.name());
-            dialog.show(errTitle, errMsg + errInput);
+            dialog.show(errTitle, errMsg + errInput + "\n" + e.getMessage().substring(e.getMessage().indexOf("\n") + 1));
         }
     }
 

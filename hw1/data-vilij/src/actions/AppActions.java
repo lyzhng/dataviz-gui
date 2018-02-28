@@ -1,5 +1,6 @@
 package actions;
 
+import dataprocessors.AppData;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -18,7 +19,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static java.io.File.separator;
 import static vilij.settings.PropertyTypes.SAVE_WORK_TITLE;
@@ -60,13 +63,38 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleSaveRequest() {
-        // TODO: NOT A PART OF HW 1
-        System.out.println(isSaved());
+        try {
+            if (isSaved()) {
+                save();
+            } else {
+                promptToSave();
+            }
+        } catch (IOException e) {
+            // Do something...
+            System.out.println("handle save request is not working");
+        }
     }
 
     @Override
     public void handleLoadRequest() {
-        // TODO: NOT A PART OF HW 1
+        try {
+            FileChooser fileChooser = new FileChooser();
+            FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Tab-Separated Data File (.*.tsd)", "*.tsd");
+            fileChooser.getExtensionFilters().add(extensionFilter);
+            String dataDirPath = separator + applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_RESOURCE_PATH.name());
+            URL dataDirURL = getClass().getResource(dataDirPath);
+            fileChooser.setInitialDirectory(new File(dataDirURL.getFile()));
+            File selected = fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+            if (selected == null) {
+                System.out.println("Nothing was selected");
+                return;
+            } else {
+                applicationTemplate.getDataComponent().loadData(selected.toPath());
+            }
+        }
+        catch (Exception e) {
+            System.out.println("failed to handle load request");
+        }
     }
 
     @Override
@@ -79,11 +107,11 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handlePrintRequest() {
-        // TODO: NOT A PART OF HW 1
+
     }
 
     public void handleScreenshotRequest() throws IOException {
-        // TODO: NOT A PART OF HW 1
+
     }
 
     /**
@@ -128,9 +156,12 @@ public final class AppActions implements ActionComponent {
                 if (selected != null) {
                     dataFilePath = selected.toPath();
                     save();
+                    ((AppUI) (applicationTemplate.getUIComponent())).getSaveButton().setDisable(true);
                 } else return false; // if user presses escape after initially selecting 'yes'
-            } else
+            } else {
                 save();
+                ((AppUI) (applicationTemplate.getUIComponent())).getSaveButton().setDisable(true);
+            }
         }
 
         return !dialog.getSelectedOption().equals(ConfirmationDialog.Option.CANCEL);
@@ -139,6 +170,7 @@ public final class AppActions implements ActionComponent {
     private void save() throws IOException {
         applicationTemplate.getDataComponent().saveData(dataFilePath);
         isUnsaved.set(false);
+
     }
 
     private void errorHandlingHelper() {
