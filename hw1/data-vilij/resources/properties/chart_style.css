@@ -1,0 +1,20 @@
+/* border content */
+.chart-content{
+  -fx-padding: 0px;
+  -fx-border-color: black;
+  -fx-border-width: 4px;
+}
+
+.axis .axis-tick-mark {
+
+}
+
+.axis .axis-minor-tick-mark {
+  -fx-border-width: 4px;
+}
+
+.chart {
+	-fx-horizontal-zero-line-visible:	false;
+	-fx-vertical-zero-line-visible:		false;
+
+}

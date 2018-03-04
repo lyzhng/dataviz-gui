@@ -2,6 +2,7 @@ package actions;
 
 import dataprocessors.AppData;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.scene.control.TextArea;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import settings.AppPropertyTypes;
@@ -64,14 +65,24 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleSaveRequest() {
         try {
-            if (isSaved()) {
+            Boolean hadAnError = ((AppData) applicationTemplate.getDataComponent()).getHadAnError();
+            if (isSaved() && !hadAnError) {
                 save();
-            } else {
+            } else if (!isSaved() && !hadAnError){
                 promptToSave();
+            } else {
+                String errSaveTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_TITLE.name());
+                String errSaveMsg = applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_MSG.name());
+                String errSaveMsgCont = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_FILE_LABEL.name());
+                ErrorDialog errorDialog = ErrorDialog.getDialog();
+                errorDialog.show(errSaveTitle, errSaveMsg + errSaveMsgCont);
             }
         } catch (IOException e) {
-            // Do something...
-            System.out.println("handle save request is not working");
+            String errSaveTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_TITLE.name());
+            String errSaveMsg = applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_MSG.name());
+            String errSaveMsgCont = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_FILE_LABEL.name());
+            ErrorDialog errorDialog = ErrorDialog.getDialog();
+            errorDialog.show(errSaveTitle, errSaveMsg + errSaveMsgCont);
         }
     }
 
@@ -86,14 +97,22 @@ public final class AppActions implements ActionComponent {
             fileChooser.setInitialDirectory(new File(dataDirURL.getFile()));
             File selected = fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
             if (selected == null) {
-                System.out.println("Nothing was selected");
+                String errLoadTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
+                String errLoadMsg = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name());
+                String errLoadMsgCont = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_FILE_LABEL.name());
+                ErrorDialog errorDialog = ErrorDialog.getDialog();
+                errorDialog.show(errLoadTitle, errLoadMsg + errLoadMsgCont);
                 return;
             } else {
                 applicationTemplate.getDataComponent().loadData(selected.toPath());
             }
         }
         catch (Exception e) {
-            System.out.println("failed to handle load request");
+            String errLoadTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
+            String errLoadMsg = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name());
+            String errLoadMsgCont = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_FILE_LABEL.name());
+            ErrorDialog errorDialog = ErrorDialog.getDialog();
+            errorDialog.show(errLoadTitle, errLoadMsg + errLoadMsgCont);
         }
     }
 

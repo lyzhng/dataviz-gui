@@ -43,6 +43,9 @@ functionality within the main workspace. -->
         <property name="TSD_EXT_TITLE" value=" (.*.tsd)"/>
         <property name="INITIAL_FILE_NAME" value="Untitled.tsd"/>
         <property name="SEPARATOR" value="/"/>
+        <property name="DUPLICATE_ERR_MSG" value="Duplicate data: "/>
+        <property name="ERR_LOADING_TXT" value="Error loading: Line "/>
+        <property name="OCCURRED_AT" value="Error occurred at: Line "/>
     </property_list>
     <property_options_list/>
 </properties>

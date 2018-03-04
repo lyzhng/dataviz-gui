@@ -2,6 +2,9 @@ package dataprocessors;
 
 import javafx.geometry.Point2D;
 import javafx.scene.chart.XYChart;
+import vilij.components.Dialog;
+import vilij.components.ErrorDialog;
+import vilij.templates.ApplicationTemplate;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,12 +33,12 @@ public final class TSDProcessor {
         }
     }
 
-    private Map<String, String>  dataLabels;
-    private Map<String, Point2D> dataPoints;
+    private LinkedHashMap<String, String> dataLabels;
+    private LinkedHashMap<String, Point2D> dataPoints;
 
     public TSDProcessor() {
-        dataLabels = new HashMap<>();
-        dataPoints = new HashMap<>();
+        dataLabels = new LinkedHashMap<>();
+        dataPoints = new LinkedHashMap<>();
     }
 
     /**
@@ -46,27 +49,25 @@ public final class TSDProcessor {
      */
     public void processString(String tsdString) throws Exception {
         AtomicInteger lineNum = new AtomicInteger(1);
-        AtomicBoolean hadAnError   = new AtomicBoolean(false);
+        AtomicBoolean hadAnError = new AtomicBoolean(false);
         StringBuilder errorMessage = new StringBuilder();
-        Stream.of(tsdString.split("\n"))
-              .map(line -> Arrays.asList(line.split("\t")))
-              .forEach(list -> {
-                  try {
-                      String   name  = checkedname(list.get(0));
-                      String   label = list.get(1);
-                      String[] pair  = list.get(2).split(",");
-                      Point2D  point = new Point2D(Double.parseDouble(pair[0]), Double.parseDouble(pair[1]));
-                      dataLabels.put(name, label);
-                      dataPoints.put(name, point);
-                      lineNum.incrementAndGet();
-                  } catch (Exception e) {
-                      errorMessage.setLength(0);
-                      errorMessage.append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
-                      errorMessage.append("\n");
-                      errorMessage.append("Error occurs at line " + (lineNum));
-                      hadAnError.set(true);
-                  }
-              });
+        Stream.of(tsdString.split("\n")).map(line -> Arrays.asList(line.split("\t"))).forEach(list -> {
+            try {
+                String name = checkedname(list.get(0));
+                String label = list.get(1);
+                String[] pair = list.get(2).split(",");
+                Point2D point = new Point2D(Double.parseDouble(pair[0]), Double.parseDouble(pair[1]));
+                dataLabels.put(name, label);
+                dataPoints.put(name, point);
+                lineNum.incrementAndGet();
+            } catch (Exception e) {
+                errorMessage.setLength(0);
+                errorMessage.append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
+                errorMessage.append("\n");
+                errorMessage.append(lineNum);
+                hadAnError.set(true);
+            }
+        });
         if (errorMessage.length() > 0)
             throw new Exception(errorMessage.toString());
     }

@@ -1,6 +1,5 @@
 package dataprocessors;
 
-import javafx.stage.FileChooser;
 import settings.AppPropertyTypes;
 import ui.AppUI;
 import vilij.components.DataComponent;
@@ -24,10 +23,12 @@ public class AppData implements DataComponent {
 
     private TSDProcessor        processor;
     private ApplicationTemplate applicationTemplate;
+    protected Boolean hadAnError;
 
     public AppData(ApplicationTemplate applicationTemplate) {
         this.processor = new TSDProcessor();
         this.applicationTemplate = applicationTemplate;
+        hadAnError = false;
     }
 
     @Override
@@ -43,24 +44,34 @@ public class AppData implements DataComponent {
                 lineCounter++;
             }
             ((AppUI) applicationTemplate.getUIComponent()).getTextArea().setText(stringBuilder.toString());
-            processor.processString(stringBuilder.toString());
+            loadData(stringBuilder.toString());
+            displayData();
         }
         catch (Exception e) {
-            // Do something... Error dialog.
-            System.out.println("There was an error loading line " + lineCounter);
+            String errLoadingTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
+            String errLoadingMsg = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.ERR_LOADING_TXT.name());
+            ErrorDialog errorDialog = ErrorDialog.getDialog();
+            errorDialog.show(errLoadingTitle,errLoadingMsg + lineCounter);
         }
     }
 
     public void loadData(String dataString) {
         try {
             processor.processString(dataString);
+            hadAnError = false;
         } catch (Exception e) {
             ErrorDialog     dialog   = (ErrorDialog) applicationTemplate.getDialog(Dialog.DialogType.ERROR);
             PropertyManager manager  = applicationTemplate.manager;
             String          errTitle = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
             String          errMsg   = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name());
             String          errInput = manager.getPropertyValue(AppPropertyTypes.TEXT_AREA.name());
-            dialog.show(errTitle, errMsg + errInput + "\n" + e.getMessage().substring(e.getMessage().indexOf("\n") + 1));
+            String  errMsgCont =
+                    manager.getPropertyValue(AppPropertyTypes.OCCURRED_AT.name()) +
+                    e.getMessage().substring(e.getMessage().indexOf("\n") + 1);
+            dialog.show(errTitle, errMsg + errInput + "\n" + errMsgCont);
+            clear();
+            ((AppUI) applicationTemplate.getUIComponent()).clearChart();
+            hadAnError = true;
         }
     }
 
@@ -83,4 +94,11 @@ public class AppData implements DataComponent {
     public void displayData() {
         processor.toChartData(((AppUI) applicationTemplate.getUIComponent()).getChart());
     }
+
+    public Boolean getHadAnError() {
+        return hadAnError;
+    }
+
+
+
 }

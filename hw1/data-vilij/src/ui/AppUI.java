@@ -2,6 +2,8 @@ package ui;
 
 import actions.AppActions;
 import dataprocessors.AppData;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.chart.NumberAxis;
@@ -20,6 +22,9 @@ import settings.AppPropertyTypes;
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
+
+import java.io.File;
+import java.net.URL;
 
 import static vilij.settings.PropertyTypes.GUI_RESOURCE_PATH;
 import static vilij.settings.PropertyTypes.ICONS_RESOURCE_PATH;
@@ -88,7 +93,7 @@ public final class AppUI extends UITemplate {
     @Override
     public void clear() {
         textArea.clear();
-        chart.getData().clear();
+        clearChart();
     }
 
     public String getCurrentText() { return textArea.getText(); }
@@ -99,6 +104,15 @@ public final class AppUI extends UITemplate {
         NumberAxis      yAxis   = new NumberAxis();
         chart = new ScatterChart<>(xAxis, yAxis);
         chart.setTitle(manager.getPropertyValue(AppPropertyTypes.CHART_TITLE.name()));
+        chart.setHorizontalGridLinesVisible(false);
+        chart.setVerticalGridLinesVisible(false);
+        chart.getStylesheets().clear();
+
+        // change
+        String      dataDirPath = "/" + manager.getPropertyValue(AppPropertyTypes.DATA_RESOURCE_PATH.name());
+        File f = new File("/Users/lilyzhong/IdeaProjects/cse219homeworkUpdated/hw1/data-vilij/src/ui/chart_style.css");
+        chart.getStylesheets().add("file:////Users/lilyzhong/IdeaProjects/cse219homeworkUpdated/hw1/data-vilij/resources/properties/chart_style.css");
+        xAxis.getStylesheets().add("file:////Users/lilyzhong/IdeaProjects/cse219homeworkUpdated/hw1/data-vilij/resources/properties/chart_style.css");
 
         VBox leftPanel = new VBox(8);
         leftPanel.setAlignment(Pos.TOP_CENTER);
@@ -120,7 +134,16 @@ public final class AppUI extends UITemplate {
         CheckBox checkBox = new CheckBox("read-only");
         HBox.setHgrow(processButtonsBox, Priority.ALWAYS);
         processButtonsBox.getChildren().addAll(displayButton, checkBox); // change margin
-
+        checkBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if (newValue) {
+                    textArea.setDisable(true);
+                } else {
+                    textArea.setDisable(false);
+                }
+            }
+        });
         leftPanel.getChildren().addAll(leftPanelTitle, textArea, processButtonsBox);
 
         StackPane rightPanel = new StackPane(chart);
@@ -179,5 +202,9 @@ public final class AppUI extends UITemplate {
 
     public TextArea getTextArea() {
         return textArea;
+    }
+
+    public void clearChart() {
+        chart.getData().clear();
     }
 }
