@@ -46,6 +46,7 @@ functionality within the main workspace. -->
         <property name="DUPLICATE_ERR_MSG" value="Duplicate data: "/>
         <property name="ERR_LOADING_TXT" value="Error loading: Line "/>
         <property name="OCCURRED_AT" value="Error occurred at: Line "/>
+        <property name="READ_ONLY" value="Read-only" />
     </property_list>
     <property_options_list/>
 </properties>

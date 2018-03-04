@@ -12,6 +12,10 @@ import vilij.templates.ApplicationTemplate;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * This is the concrete application-specific implementation of the data component defined by the Vilij framework.
@@ -24,11 +28,17 @@ public class AppData implements DataComponent {
     private TSDProcessor        processor;
     private ApplicationTemplate applicationTemplate;
     protected Boolean hadAnError;
+    protected List<String> names;
+    protected Integer indexDup;
+    protected List<String> lines;
 
     public AppData(ApplicationTemplate applicationTemplate) {
         this.processor = new TSDProcessor();
         this.applicationTemplate = applicationTemplate;
         hadAnError = false;
+        names = new ArrayList<>();
+        indexDup = -1;
+        lines = new ArrayList<>();
     }
 
     @Override
@@ -57,8 +67,21 @@ public class AppData implements DataComponent {
 
     public void loadData(String dataString) {
         try {
-            processor.processString(dataString);
-            hadAnError = false;
+//            checkForDuplicates(dataString);
+//            if (indexDup == -1) {
+                processor.processString(dataString);
+                hadAnError = false;
+//            }
+//            else {
+//                ErrorDialog     dialog   = (ErrorDialog) applicationTemplate.getDialog(Dialog.DialogType.ERROR);
+//                PropertyManager manager  = applicationTemplate.manager;
+//                String errTitle = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
+//                String duplicateMsg = manager.getPropertyValue(AppPropertyTypes.DUPLICATE_ERR_MSG.name());
+//                String duplicateMsgCont = lines.get(indexDup);
+//                dialog.show(errTitle, duplicateMsg + duplicateMsgCont);
+//                clear();
+//                hadAnError = true;
+//            }
         } catch (Exception e) {
             ErrorDialog     dialog   = (ErrorDialog) applicationTemplate.getDialog(Dialog.DialogType.ERROR);
             PropertyManager manager  = applicationTemplate.manager;
@@ -99,6 +122,27 @@ public class AppData implements DataComponent {
         return hadAnError;
     }
 
+    public void checkForDuplicates(String tsdString) {
+        indexDup = -1;
+        String[] linesArr = tsdString.split("\n");
+        lines = Arrays.asList(linesArr);
+        try {
+          Stream.of(tsdString.split("\n")).map(line -> Arrays.asList(line.split("\t"))).forEach(list -> {
+              String name = list.get(0);
+              names.add(name);
+          });
+          for (int i = 0; i < names.size(); i++) {
+              for (int j = i+1; j < names.size(); j++) {
+                  if (names.get(i).equals(names.get(j))) {
+                      indexDup = i;
+                      break;
+                  }
+              }
+          }
+        }
+        catch (Exception e) {
 
+        }
+    }
 
 }

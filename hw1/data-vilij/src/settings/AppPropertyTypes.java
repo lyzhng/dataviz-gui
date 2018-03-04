@@ -40,5 +40,6 @@ public enum AppPropertyTypes {
     ERR_LOADING_TXT,
     DUPLICATE_ERR_MSG,
     OCCURRED_AT,
-    DATA_FILE_LABEL
+    DATA_FILE_LABEL,
+    READ_ONLY
 }

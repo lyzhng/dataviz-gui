@@ -59,12 +59,13 @@ public final class TSDProcessor {
                 Point2D point = new Point2D(Double.parseDouble(pair[0]), Double.parseDouble(pair[1]));
                 dataLabels.put(name, label);
                 dataPoints.put(name, point);
-                lineNum.incrementAndGet();
+                lineNum.getAndIncrement();
             } catch (Exception e) {
                 errorMessage.setLength(0);
                 errorMessage.append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
                 errorMessage.append("\n");
                 errorMessage.append(lineNum);
+                clear();
                 hadAnError.set(true);
             }
         });

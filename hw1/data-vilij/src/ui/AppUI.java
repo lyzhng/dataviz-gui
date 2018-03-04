@@ -106,13 +106,10 @@ public final class AppUI extends UITemplate {
         chart.setTitle(manager.getPropertyValue(AppPropertyTypes.CHART_TITLE.name()));
         chart.setHorizontalGridLinesVisible(false);
         chart.setVerticalGridLinesVisible(false);
+        chart.getYAxis().setTickLabelsVisible(false);
+        chart.getXAxis().setTickLabelsVisible(false);
         chart.getStylesheets().clear();
-
-        // change
-        String      dataDirPath = "/" + manager.getPropertyValue(AppPropertyTypes.DATA_RESOURCE_PATH.name());
-        File f = new File("/Users/lilyzhong/IdeaProjects/cse219homeworkUpdated/hw1/data-vilij/src/ui/chart_style.css");
-        chart.getStylesheets().add("file:////Users/lilyzhong/IdeaProjects/cse219homeworkUpdated/hw1/data-vilij/resources/properties/chart_style.css");
-        xAxis.getStylesheets().add("file:////Users/lilyzhong/IdeaProjects/cse219homeworkUpdated/hw1/data-vilij/resources/properties/chart_style.css");
+        // external spreadsheet to chart_style.css
 
         VBox leftPanel = new VBox(8);
         leftPanel.setAlignment(Pos.TOP_CENTER);
@@ -131,7 +128,8 @@ public final class AppUI extends UITemplate {
 
         HBox processButtonsBox = new HBox();
         displayButton = new Button(manager.getPropertyValue(AppPropertyTypes.DISPLAY_BUTTON_TEXT.name()));
-        CheckBox checkBox = new CheckBox("read-only");
+        String read_only = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.READ_ONLY.name());
+        CheckBox checkBox = new CheckBox(read_only);
         HBox.setHgrow(processButtonsBox, Priority.ALWAYS);
         processButtonsBox.getChildren().addAll(displayButton, checkBox); // change margin
         checkBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -161,6 +159,17 @@ public final class AppUI extends UITemplate {
     private void setWorkspaceActions() {
         setTextAreaActions();
         setDisplayButtonActions();
+        toggleScrnshotButton();
+    }
+
+    private void toggleScrnshotButton() {
+        chart.dataProperty().addListener(observable -> {
+            if (chart.getData().isEmpty()) {
+                scrnshotButton.setDisable(true);
+            } else {
+                scrnshotButton.setDisable(false);
+            }
+        });
     }
 
     private void setTextAreaActions() {
@@ -193,6 +202,7 @@ public final class AppUI extends UITemplate {
                     dataComponent.clear();
                     dataComponent.loadData(textArea.getText());
                     dataComponent.displayData();
+                    toggleScrnshotButton();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
