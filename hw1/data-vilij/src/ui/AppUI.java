@@ -4,10 +4,14 @@ import actions.AppActions;
 import dataprocessors.AppData;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.chart.Axis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
@@ -163,11 +167,14 @@ public final class AppUI extends UITemplate {
     }
 
     private void toggleScrnshotButton() {
-        chart.dataProperty().addListener(observable -> {
-            if (chart.getData().isEmpty()) {
-                scrnshotButton.setDisable(true);
-            } else {
-                scrnshotButton.setDisable(false);
+        chart.getData().addListener(new ListChangeListener<XYChart.Series<Number, Number>>() {
+            @Override
+            public void onChanged(Change<? extends XYChart.Series<Number, Number>> c) {
+                if (chart.getData().isEmpty()) {
+                    scrnshotButton.setDisable(true);
+                } else {
+                    scrnshotButton.setDisable(false);
+                }
             }
         });
     }
