@@ -122,27 +122,27 @@ public class AppData implements DataComponent {
         return hadAnError;
     }
 
-    public void checkForDuplicates(String tsdString) {
-        indexDup = -1;
-        String[] linesArr = tsdString.split("\n");
-        lines = Arrays.asList(linesArr);
-        try {
-          Stream.of(tsdString.split("\n")).map(line -> Arrays.asList(line.split("\t"))).forEach(list -> {
-              String name = list.get(0);
-              names.add(name);
-          });
-          for (int i = 0; i < names.size(); i++) {
-              for (int j = i+1; j < names.size(); j++) {
-                  if (names.get(i).equals(names.get(j))) {
-                      indexDup = i;
-                      break;
-                  }
-              }
-          }
-        }
-        catch (Exception e) {
-
-        }
-    }
+//    public void checkForDuplicates(String tsdString) {
+//        indexDup = -1;
+//        String[] linesArr = tsdString.split("\n");
+//        lines = Arrays.asList(linesArr);
+//        try {
+//          Stream.of(tsdString.split("\n")).map(line -> Arrays.asList(line.split("\t"))).forEach(list -> {
+//              String name = list.get(0);
+//              names.add(name);
+//          });
+//          for (int i = 0; i < names.size(); i++) {
+//              for (int j = i+1; j < names.size(); j++) {
+//                  if (names.get(i).equals(names.get(j))) {
+//                      indexDup = i;
+//                      break;
+//                  }
+//              }
+//          }
+//        }
+//        catch (Exception e) {
+//
+//        }
+//    }
 
 }
