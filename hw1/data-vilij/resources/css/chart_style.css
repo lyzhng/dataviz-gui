@@ -1,0 +1,28 @@
+/* border content */
+.chart-plot-background {
+  -fx-padding: 0px;
+  -fx-border-color: black;
+  -fx-border-width: 6px;
+}
+
+.axis {
+   -fx-tick-length: 15px;
+   -fx-border-width: 4px;
+}
+
+.axis-tick-mark {
+   -fx-fill: null;
+   -fx-stroke: green;
+   -fx-stroke-width: 4px;
+}
+
+.axis-minor-tick-mark {
+    -fx-fill: null;
+    -fx-stroke:green;
+}
+
+.chart {
+	-fx-horizontal-zero-line-visible:	false;
+	-fx-vertical-zero-line-visible:		false;
+
+}

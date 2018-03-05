@@ -47,6 +47,8 @@ functionality within the main workspace. -->
         <property name="ERR_LOADING_TXT" value="Error loading: Line "/>
         <property name="OCCURRED_AT" value="Error occurred at: Line "/>
         <property name="READ_ONLY" value="Read-only" />
+        <property name="CSS_RESOURCE_PATH" value="css"/>
+        <property name="CSS_FILE_NAME" value="chart_style.css"/>
     </property_list>
     <property_options_list/>
 </properties>

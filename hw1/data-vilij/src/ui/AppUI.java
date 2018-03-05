@@ -11,10 +11,7 @@ import javafx.scene.chart.ScatterChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -26,6 +23,7 @@ import vilij.templates.UITemplate;
 import java.io.File;
 import java.net.URL;
 
+import static java.io.File.separator;
 import static vilij.settings.PropertyTypes.GUI_RESOURCE_PATH;
 import static vilij.settings.PropertyTypes.ICONS_RESOURCE_PATH;
 
@@ -106,10 +104,12 @@ public final class AppUI extends UITemplate {
         chart.setTitle(manager.getPropertyValue(AppPropertyTypes.CHART_TITLE.name()));
         chart.setHorizontalGridLinesVisible(false);
         chart.setVerticalGridLinesVisible(false);
-        chart.getYAxis().setTickLabelsVisible(false);
-        chart.getXAxis().setTickLabelsVisible(false);
-        chart.getStylesheets().clear();
+
         // external spreadsheet to chart_style.css
+        String dirPath = separator + applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CSS_RESOURCE_PATH.name());
+        URL dirPathURL = getClass().getResource(dirPath);
+        String cssPath = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CSS_FILE_NAME.name());
+        chart.getStylesheets().add(dirPathURL + separator + cssPath);
 
         VBox leftPanel = new VBox(8);
         leftPanel.setAlignment(Pos.TOP_CENTER);

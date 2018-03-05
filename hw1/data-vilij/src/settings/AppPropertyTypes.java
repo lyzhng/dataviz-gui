@@ -41,5 +41,7 @@ public enum AppPropertyTypes {
     DUPLICATE_ERR_MSG,
     OCCURRED_AT,
     DATA_FILE_LABEL,
-    READ_ONLY
+    READ_ONLY,
+    CSS_RESOURCE_PATH,
+    CSS_FILE_NAME
 }
