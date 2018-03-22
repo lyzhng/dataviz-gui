@@ -2,6 +2,7 @@ package dataprocessors;
 
 import javafx.geometry.Point2D;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Tooltip;
 import vilij.components.Dialog;
 import vilij.components.ErrorDialog;
 import vilij.templates.ApplicationTemplate;
