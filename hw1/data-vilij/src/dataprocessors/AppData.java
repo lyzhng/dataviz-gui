@@ -1,5 +1,9 @@
 package dataprocessors;
 
+import javafx.geometry.Point2D;
+import javafx.scene.chart.Chart;
+import javafx.scene.chart.LineChart;
+import javafx.scene.control.TextArea;
 import settings.AppPropertyTypes;
 import ui.AppUI;
 import vilij.components.DataComponent;
@@ -12,9 +16,8 @@ import vilij.templates.ApplicationTemplate;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 /**
@@ -28,9 +31,10 @@ public class AppData implements DataComponent {
     private TSDProcessor        processor;
     private ApplicationTemplate applicationTemplate;
     protected Boolean hadAnError;
-    protected List<String> names;
-    protected Integer indexDup;
-    protected List<String> lines;
+    private List<String> names;
+    private Integer indexDup;
+    private List<String> lines; //
+
 
     public AppData(ApplicationTemplate applicationTemplate) {
         this.processor = new TSDProcessor();
@@ -43,8 +47,11 @@ public class AppData implements DataComponent {
 
     @Override
     public void loadData(Path dataFilePath) {
-        int lineCounter = 1;
+//        clear();
+        int lineCounter = 0;
+        boolean moreThanTen = false;
         try {
+            TextArea textArea = ((AppUI) applicationTemplate.getUIComponent()).getTextArea();
             BufferedReader bufferedReader = new BufferedReader(new FileReader(dataFilePath.toFile()));
             String line;
             StringBuilder stringBuilder = new StringBuilder();
@@ -52,35 +59,57 @@ public class AppData implements DataComponent {
                 stringBuilder.append(line);
                 stringBuilder.append("\n");
                 lineCounter++;
+                if (lineCounter == 10) {
+                    textArea.setText(stringBuilder.toString());
+                    moreThanTen = true;
+                }
             }
-            ((AppUI) applicationTemplate.getUIComponent()).getTextArea().setText(stringBuilder.toString());
+            if (moreThanTen) {
+                ErrorDialog errorDialog = ErrorDialog.getDialog();
+                String errDialogTitle = "Load Warning";
+                String errDialogMsg = String.format("Loaded data consists of %s lines. Showing only the first 10 in the text area.", lineCounter);
+                errorDialog.show(errDialogTitle, errDialogMsg);
+                setTextAreaActions();
+            } else {
+                textArea.setText(stringBuilder.toString());
+            }
             loadData(stringBuilder.toString());
             displayData();
         }
         catch (Exception e) {
-            String errLoadingTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
-            String errLoadingMsg = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.ERR_LOADING_TXT.name());
-            ErrorDialog errorDialog = ErrorDialog.getDialog();
-            errorDialog.show(errLoadingTitle,errLoadingMsg + lineCounter);
-        }
-    }
-
-    public void loadData(String dataString) {
-        try {
-            checkForDuplicates(dataString);
-            if (indexDup == -1) {
-                processor.processString(dataString);
-                hadAnError = false;
-            }
-            else {
+            if (!hadAnError) {
+                String errLoadingTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
+                String errLoadingMsg = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.ERR_LOADING_TXT.name());
+                ErrorDialog errorDialog = ErrorDialog.getDialog();
+                errorDialog.show(errLoadingTitle, errLoadingMsg + lineCounter);
+            } else {
                 ErrorDialog     dialog   = (ErrorDialog) applicationTemplate.getDialog(Dialog.DialogType.ERROR);
                 PropertyManager manager  = applicationTemplate.manager;
                 String errTitle = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
                 String duplicateMsg = manager.getPropertyValue(AppPropertyTypes.DUPLICATE_ERR_MSG.name());
                 String duplicateMsgCont = lines.get(indexDup);
                 dialog.show(errTitle, duplicateMsg + duplicateMsgCont);
-                clear();
+            }
+        }
+    }
+
+    public void loadData(String dataString) {
+        try {
+            processor.processString(dataString);
+            checkForDuplicates(dataString);
+            if (indexDup == -1)
+                hadAnError = false;
+            else
                 hadAnError = true;
+
+            if (hadAnError) {
+//                ErrorDialog     dialog   = (ErrorDialog) applicationTemplate.getDialog(Dialog.DialogType.ERROR);
+//                PropertyManager manager  = applicationTemplate.manager;
+//                String errTitle = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
+//                String duplicateMsg = manager.getPropertyValue(AppPropertyTypes.DUPLICATE_ERR_MSG.name());
+//                String duplicateMsgCont = lines.get(indexDup);
+//                dialog.show(errTitle, duplicateMsg + duplicateMsgCont);
+                throw new Exception();
             }
         } catch (Exception e) {
             ErrorDialog     dialog   = (ErrorDialog) applicationTemplate.getDialog(Dialog.DialogType.ERROR);
@@ -112,10 +141,19 @@ public class AppData implements DataComponent {
     @Override
     public void clear() {
         processor.clear();
+        names.clear();
+        lines = new ArrayList<>();
+        indexDup = -1;
+        hadAnError = false;
     }
 
     public void displayData() {
         processor.toChartData(((AppUI) applicationTemplate.getUIComponent()).getChart());
+        LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
+        //  make lines invisible here
+        chart.lookupAll(".chart-series-line").stream().forEach(node -> {
+           node.setStyle("-fx-stroke:null;");
+        });
     }
 
     public Boolean getHadAnError() {
@@ -123,6 +161,7 @@ public class AppData implements DataComponent {
     }
 
     public void checkForDuplicates(String tsdString) {
+        // FIXME
         indexDup = -1;
         String[] linesArr = tsdString.split("\n");
         lines = Arrays.asList(linesArr);
@@ -137,14 +176,50 @@ public class AppData implements DataComponent {
                       indexDup = i;
                       break;
                   }
-                  break;
               }
           }
-          names.clear();
+//          names.clear();
         }
         catch (Exception e) {
 
         }
+    }
+
+    /**
+     * Helper method for loadData.
+     * When there are fewer than 10 lines in oldValue,
+     * the newValue should add on to the text area.
+     * FIXME
+     */
+    private void setTextAreaActions() {
+        AtomicInteger index = new AtomicInteger(10);
+        TextArea textArea = ((AppUI) applicationTemplate.getUIComponent()).getTextArea();
+        textArea.textProperty().addListener(((observable, oldValue, newValue) -> {
+            String[] prev = oldValue.split("\n");
+            if (prev.length < 10 && lines.size() > 10) {
+                if (index.get() >= lines.size()) {
+                    return;
+                }
+                Optional<String> curLine = Optional.of(String.valueOf(lines.get(index.get())));
+                if (curLine.isPresent()) {
+                    if (index.get() == 10) {
+                        textArea.setText(oldValue + curLine.get());
+                    }
+                    else {
+                        textArea.setText(oldValue + "\n" + curLine.get());
+                    }
+                    index.getAndIncrement();
+                }
+            }
+        }));
+    }
+
+    public LinkedHashMap<String, Point2D> getDataPoints() {
+        return processor.getDataPoints();
+    }
+
+    public LinkedHashMap<String, String> getDataLabels() {
+        return processor.getDataLabels();
     }
 
 }

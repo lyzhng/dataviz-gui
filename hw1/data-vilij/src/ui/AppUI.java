@@ -7,14 +7,13 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
-import javafx.scene.chart.Axis;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.ScatterChart;
-import javafx.scene.chart.XYChart;
+import javafx.scene.chart.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -25,7 +24,12 @@ import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import static java.io.File.separator;
 import static vilij.settings.PropertyTypes.GUI_RESOURCE_PATH;
@@ -43,12 +47,12 @@ public final class AppUI extends UITemplate {
 
     @SuppressWarnings("FieldCanBeLocal")
     private Button                       scrnshotButton; // toolbar button to take a screenshot of the data
-    private ScatterChart<Number, Number> chart;          // the chart where data will be displayed
+    private LineChart<Number, Number> chart;          // the chart where data will be displayed
     private Button                       displayButton;  // workspace button to display data on the chart
-    private TextArea                     textArea;       // text area for new data input
+    private TextArea                       textArea;       // text area for new data input
     private boolean                      hasNewText;     // whether or not the text area has any new data since last display
 
-    public ScatterChart<Number, Number> getChart() { return chart; }
+    public LineChart<Number, Number> getChart() { return chart; }
 
     public AppUI(Stage primaryStage, ApplicationTemplate applicationTemplate) {
         super(primaryStage, applicationTemplate);
@@ -84,6 +88,7 @@ public final class AppUI extends UITemplate {
         loadButton.setOnAction(e -> applicationTemplate.getActionComponent().handleLoadRequest());
         exitButton.setOnAction(e -> applicationTemplate.getActionComponent().handleExitRequest());
         printButton.setOnAction(e -> applicationTemplate.getActionComponent().handlePrintRequest());
+        scrnshotButton.setOnAction(e -> ((AppActions) (applicationTemplate.getActionComponent())).handleScreenshotRequest());
     }
 
     @Override
@@ -104,16 +109,17 @@ public final class AppUI extends UITemplate {
         PropertyManager manager = applicationTemplate.manager;
         NumberAxis      xAxis   = new NumberAxis();
         NumberAxis      yAxis   = new NumberAxis();
-        chart = new ScatterChart<>(xAxis, yAxis);
-        chart.setTitle(manager.getPropertyValue(AppPropertyTypes.CHART_TITLE.name()));
-        chart.setHorizontalGridLinesVisible(false);
-        chart.setVerticalGridLinesVisible(false);
+        chart = new LineChart<>(xAxis, yAxis);
 
         // external spreadsheet to chart_style.css
         String dirPath = separator + applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CSS_RESOURCE_PATH.name());
         URL dirPathURL = getClass().getResource(dirPath);
         String cssPath = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CSS_FILE_NAME.name());
         chart.getStylesheets().add(dirPathURL + separator + cssPath);
+
+        chart.setTitle(manager.getPropertyValue(AppPropertyTypes.CHART_TITLE.name()));
+        chart.setHorizontalGridLinesVisible(false);
+        chart.setVerticalGridLinesVisible(false);
 
         VBox leftPanel = new VBox(8);
         leftPanel.setAlignment(Pos.TOP_CENTER);
@@ -129,6 +135,7 @@ public final class AppUI extends UITemplate {
         leftPanelTitle.setFont(Font.font(fontname, fontsize));
 
         textArea = new TextArea();
+        textArea.setMinHeight(200);
 
         HBox processButtonsBox = new HBox();
         displayButton = new Button(manager.getPropertyValue(AppPropertyTypes.DISPLAY_BUTTON_TEXT.name()));
@@ -182,17 +189,20 @@ public final class AppUI extends UITemplate {
     private void setTextAreaActions() {
         textArea.textProperty().addListener((observable, oldValue, newValue) -> {
             try {
-                if (!newValue.equals(oldValue)) {
+                if (!newValue.equals(oldValue)) { // if text is changed
                     ((AppActions) applicationTemplate.getActionComponent()).setIsUnsavedProperty(true);
-                    if (newValue.charAt(newValue.length() - 1) == '\n' || newValue.isEmpty()) {
+                    if (newValue.isEmpty()) {
                         hasNewText = true;
+                    } else {
+                        hasNewText = false;
                     }
                     if (hasNewText) {
                         newButton.setDisable(true);
                         saveButton.setDisable(true);
+                    } else {
+                        newButton.setDisable(false);
+                        saveButton.setDisable(false);
                     }
-                    newButton.setDisable(false);
-                    saveButton.setDisable(false);
                 }
             } catch (IndexOutOfBoundsException e) {
                 System.err.println(newValue);
@@ -202,10 +212,10 @@ public final class AppUI extends UITemplate {
 
     private void setDisplayButtonActions() {
         displayButton.setOnAction(event -> {
-            if (hasNewText) {
+//            if (hasNewText) {
                 try {
-                    chart.getData().clear();
                     AppData dataComponent = (AppData) applicationTemplate.getDataComponent();
+                    clearChart();
                     dataComponent.clear();
                     dataComponent.loadData(textArea.getText());
                     dataComponent.displayData();
@@ -213,7 +223,7 @@ public final class AppUI extends UITemplate {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }
+//            }
         });
     }
 
@@ -223,5 +233,15 @@ public final class AppUI extends UITemplate {
 
     public void clearChart() {
         chart.getData().clear();
+    }
+
+    public void setTooltipsActions() {
+        LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
+        for (XYChart.Series<Number, Number> series : chart.getData()) {
+            for (XYChart.Data<Number, Number> data : series.getData()) {
+                
+                // Tooltip.install(data.getNode(), new Tooltip(String.format("%s", ...)))
+            }
+        }
     }
 }

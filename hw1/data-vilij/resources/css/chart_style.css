@@ -1,28 +1,40 @@
 /* border content */
+
 .chart-plot-background {
-  -fx-padding: 0px;
+  -fx-border-width: 8px;
   -fx-border-color: black;
-  -fx-border-width: 6px;
 }
 
 .axis {
    -fx-tick-length: 15px;
-   -fx-border-width: 4px;
 }
 
 .axis-tick-mark {
-   -fx-fill: null;
    -fx-stroke: green;
    -fx-stroke-width: 4px;
 }
 
 .axis-minor-tick-mark {
-    -fx-fill: null;
-    -fx-stroke:green;
+    -fx-stroke: green;
 }
 
-.chart {
-	-fx-horizontal-zero-line-visible:	false;
-	-fx-vertical-zero-line-visible:		false;
+.chart-legend {
+   -fx-background-color:  transparent;
+   -fx-padding: 20px;
+}
 
+.chart-legend-item-symbol{
+   -fx-background-radius: 5px;
+}
+
+.chart-symbol {
+  -fx-background-radius: 10 10 10 10;
+}
+
+.chart-legend-item-symbol {
+   -fx-background-radius: 10 10 10 10;
+}
+
+.chart-legend-item {
+    -fx-text-fill: #191970;
 }

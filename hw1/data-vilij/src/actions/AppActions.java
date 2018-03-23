@@ -4,7 +4,10 @@ import dataprocessors.AppData;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.SnapshotParameters;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.ScatterChart;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -20,6 +23,7 @@ import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,6 +31,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 import static java.io.File.separator;
 import static vilij.settings.PropertyTypes.SAVE_WORK_TITLE;
@@ -74,6 +79,7 @@ public final class AppActions implements ActionComponent {
                 save();
             } else if (!isSaved() && !hadAnError){
                 promptToSave();
+                setIsUnsavedProperty(false);
             } else {
                 String errSaveTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_TITLE.name());
                 String errSaveMsg = applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_MSG.name());
@@ -81,6 +87,11 @@ public final class AppActions implements ActionComponent {
                 ErrorDialog errorDialog = ErrorDialog.getDialog();
                 errorDialog.show(errSaveTitle, errSaveMsg + errSaveMsgCont);
             }
+
+            if (isSaved()) {
+                ((AppUI) (applicationTemplate.getUIComponent())).getSaveButton().setDisable(true);
+            }
+
         } catch (IOException e) {
             String errSaveTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_TITLE.name());
             String errSaveMsg = applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_MSG.name());
@@ -93,6 +104,9 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleLoadRequest() {
         try {
+            ((AppUI) (applicationTemplate.getUIComponent())).clearChart();
+            AppData dataComponent = (AppData) applicationTemplate.getDataComponent();
+            dataComponent.clear();
             FileChooser fileChooser = new FileChooser();
             FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Tab-Separated Data File (.*.tsd)", "*.tsd");
             fileChooser.getExtensionFilters().add(extensionFilter);
@@ -100,18 +114,15 @@ public final class AppActions implements ActionComponent {
             URL dataDirURL = getClass().getResource(dataDirPath);
             fileChooser.setInitialDirectory(new File(dataDirURL.getFile()));
             File selected = fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
-            if (selected == null) {
-                String errLoadTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
-                String errLoadMsg = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name());
-                String errLoadMsgCont = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_FILE_LABEL.name());
-                ErrorDialog errorDialog = ErrorDialog.getDialog();
-                errorDialog.show(errLoadTitle, errLoadMsg + errLoadMsgCont);
-                return;
-            } else {
+            if (selected != null) {
                 applicationTemplate.getDataComponent().loadData(selected.toPath());
+//                String errLoadTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
+//                String errLoadMsg = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name());
+//                String errLoadMsgCont = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_FILE_LABEL.name());
+//                ErrorDialog errorDialog = ErrorDialog.getDialog();
+//                errorDialog.show(errLoadTitle, errLoadMsg + errLoadMsgCont);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             String errLoadTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
             String errLoadMsg = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name());
             String errLoadMsgCont = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_FILE_LABEL.name());
@@ -133,8 +144,27 @@ public final class AppActions implements ActionComponent {
 
     }
 
-    public void handleScreenshotRequest() throws IOException {
+    public void handleScreenshotRequest() {
+        LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
+        chart.setAnimated(false);
+        WritableImage image = chart.snapshot(null,null);
+        BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
 
+        // setting up filechooser to select location for saved image
+        FileChooser fileChooser = new FileChooser();
+        String      dataDirPath = separator + applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_RESOURCE_PATH.name());
+        URL         dataDirURL  = getClass().getResource(dataDirPath);
+        fileChooser.setInitialDirectory(new File(dataDirURL.getFile()));
+        fileChooser.setTitle(applicationTemplate.manager.getPropertyValue(SAVE_WORK_TITLE.name()));
+        File location = fileChooser.showSaveDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+
+        try {
+            if (bufferedImage != null && location != null)
+                ImageIO.write(bufferedImage, "png", location);
+
+        } catch (IOException e) {
+            System.out.println("Something went wrong with the screenshot request.");
+        }
     }
 
     /**
