@@ -112,6 +112,7 @@ public class AppData implements DataComponent {
                 throw new Exception();
             }
         } catch (Exception e) {
+            // fixme
             ErrorDialog     dialog   = (ErrorDialog) applicationTemplate.getDialog(Dialog.DialogType.ERROR);
             PropertyManager manager  = applicationTemplate.manager;
             String          errTitle = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
@@ -148,12 +149,13 @@ public class AppData implements DataComponent {
     }
 
     public void displayData() {
-        processor.toChartData(((AppUI) applicationTemplate.getUIComponent()).getChart());
         LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
+        processor.toChartData(chart);
         //  make lines invisible here
         chart.lookupAll(".chart-series-line").stream().forEach(node -> {
            node.setStyle("-fx-stroke:null;");
         });
+        ((AppUI) applicationTemplate.getUIComponent()).setTooltips();
     }
 
     public Boolean getHadAnError() {

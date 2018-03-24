@@ -82,9 +82,11 @@ public final class TSDProcessor {
 
     void toChartData(XYChart<Number, Number> chart) {
         Set<String> labels = new HashSet<>(dataLabels.values());
+        // create a new series for each distinct label
         for (String label : labels) {
             XYChart.Series<Number, Number> series = new XYChart.Series<>();
             series.setName(label);
+            // adding the same labels to the same series
             dataLabels.entrySet().stream().filter(entry -> entry.getValue().equals(label)).forEach(entry -> {
                 Point2D point = dataPoints.get(entry.getKey());
                 series.getData().add(new XYChart.Data<>(point.getX(), point.getY()));
@@ -102,5 +104,15 @@ public final class TSDProcessor {
         if (!name.startsWith("@"))
             throw new InvalidDataNameException(name);
         return name;
+    }
+
+    public LinkedHashMap<String, Point2D> getDataPoints()
+    {
+        return dataPoints;
+    }
+
+    public LinkedHashMap<String, String> getDataLabels()
+    {
+        return dataLabels;
     }
 }

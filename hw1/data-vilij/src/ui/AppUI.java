@@ -9,6 +9,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.chart.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -235,12 +236,21 @@ public final class AppUI extends UITemplate {
         chart.getData().clear();
     }
 
-    public void setTooltipsActions() {
+    public void setTooltips() {
         LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
         for (XYChart.Series<Number, Number> series : chart.getData()) {
             for (XYChart.Data<Number, Number> data : series.getData()) {
-                
-                // Tooltip.install(data.getNode(), new Tooltip(String.format("%s", ...)))
+                Double xValue = data.getXValue().doubleValue();
+                Double yValue = data.getYValue().doubleValue();
+                Point2D point = new Point2D(xValue, yValue);
+                data.getNode().setOnMouseEntered(event -> {
+                    data.getNode().setCursor(Cursor.CROSSHAIR);
+                });
+                dataPoints.keySet().forEach(key -> {
+                    if (dataPoints.get(key).equals(point)) {
+                        Tooltip.install(data.getNode(), new Tooltip(key));
+                    }
+                });
             }
         }
     }
