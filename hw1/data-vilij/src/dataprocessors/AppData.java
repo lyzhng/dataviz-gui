@@ -1,8 +1,11 @@
 package dataprocessors;
 
 import javafx.geometry.Point2D;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.chart.Chart;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.TextArea;
 import settings.AppPropertyTypes;
 import ui.AppUI;
@@ -14,6 +17,7 @@ import vilij.settings.PropertyTypes;
 import vilij.templates.ApplicationTemplate;
 
 import java.io.*;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -118,10 +122,7 @@ public class AppData implements DataComponent {
             String          errTitle = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
             String          errMsg   = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name());
             String          errInput = manager.getPropertyValue(AppPropertyTypes.TEXT_AREA.name());
-            String  errMsgCont =
-                    manager.getPropertyValue(AppPropertyTypes.OCCURRED_AT.name()) +
-                    e.getMessage().substring(e.getMessage().indexOf("\n") + 1);
-            dialog.show(errTitle, errMsg + errInput + "\n" + errMsgCont);
+            dialog.show(errTitle, errMsg + errInput);
             clear();
             ((AppUI) applicationTemplate.getUIComponent()).clearChart();
             hadAnError = true;
@@ -151,9 +152,11 @@ public class AppData implements DataComponent {
     public void displayData() {
         LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
         processor.toChartData(chart);
+        plotAvgY();
         //  make lines invisible here
-        chart.lookupAll(".chart-series-line").stream().forEach(node -> {
-           node.setStyle("-fx-stroke:null;");
+        chart.lookupAll(".chart-series-line").forEach(node -> {
+            if (!(node.lookup("#avg-series") == node))
+                node.setStyle("-fx-stroke:null;");
         });
         ((AppUI) applicationTemplate.getUIComponent()).setTooltips();
     }
@@ -220,8 +223,45 @@ public class AppData implements DataComponent {
         return processor.getDataPoints();
     }
 
-    public LinkedHashMap<String, String> getDataLabels() {
-        return processor.getDataLabels();
+    private double findAvgY() {
+        LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
+        LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
+        double yTotal = 0.0d;
+        for (XYChart.Series<Number, Number> series : chart.getData()) {
+            for (XYChart.Data<Number, Number> data : series.getData()) {
+                yTotal += data.getYValue().doubleValue();
+            }
+        }
+        return yTotal / dataPoints.size();
     }
 
+    private void plotAvgY() {
+        LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
+        LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
+        List<Double> xValues = new ArrayList<>();
+        dataPoints.values().forEach(value -> {
+            xValues.add(value.getX());
+        });
+        Collections.sort(xValues);
+        if (!xValues.isEmpty()) {
+            Double xMin = xValues.get(0);
+            Double xMax = xValues.get(xValues.size() - 1);
+            XYChart.Series<Number, Number> series = new XYChart.Series<>();
+            Point2D minPoint = new Point2D(xMin, findAvgY());
+            Point2D maxPoint = new Point2D(xMax, findAvgY());
+            series.getData().add(new XYChart.Data<>(minPoint.getX(), minPoint.getY()));
+            series.getData().add(new XYChart.Data<>(maxPoint.getX(), maxPoint.getY()));
+            chart.getData().add(series);
+            series.getNode().setId("avg-series");
+            series.setName("AVG");
+            series.getNode().lookup(".chart-series-line").setStyle(
+                    "-fx-stroke: #0099ff; -fx-stroke-width: 4px;"
+            );
+            series.getData().forEach(data -> {
+                data.getNode().lookup(".chart-line-symbol").setStyle("-fx-background-color: transparent;");
+            });
+        }
+        // hide dots
+        // css using id
+    }
 }
