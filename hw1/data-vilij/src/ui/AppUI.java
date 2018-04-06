@@ -213,7 +213,6 @@ public final class AppUI extends UITemplate {
 
     private void setDisplayButtonActions() {
         displayButton.setOnAction(event -> {
-//            if (hasNewText) {
                 try {
                     AppData dataComponent = (AppData) applicationTemplate.getDataComponent();
                     clearChart();
@@ -224,7 +223,6 @@ public final class AppUI extends UITemplate {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-//            }
         });
     }
 

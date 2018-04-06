@@ -2,15 +2,10 @@ package dataprocessors;
 
 import javafx.geometry.Point2D;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Tooltip;
-import vilij.components.Dialog;
-import vilij.components.ErrorDialog;
-import vilij.templates.ApplicationTemplate;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.stream.Stream;
 
 /**
@@ -36,10 +31,12 @@ public final class TSDProcessor {
 
     private LinkedHashMap<String, String> dataLabels;
     private LinkedHashMap<String, Point2D> dataPoints;
+    protected AtomicBoolean hadAnError;
 
     public TSDProcessor() {
         dataLabels = new LinkedHashMap<>();
         dataPoints = new LinkedHashMap<>();
+        hadAnError = new AtomicBoolean(false);
     }
 
     /**
@@ -50,7 +47,6 @@ public final class TSDProcessor {
      */
     public void processString(String tsdString) throws Exception {
         AtomicInteger lineNum = new AtomicInteger(1);
-        AtomicBoolean hadAnError = new AtomicBoolean(false);
         StringBuilder errorMessage = new StringBuilder();
         Stream.of(tsdString.split("\n")).map(line -> Arrays.asList(line.split("\t"))).forEach(list -> {
             try {
@@ -66,8 +62,8 @@ public final class TSDProcessor {
                 errorMessage.append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
                 errorMessage.append("\n");
                 errorMessage.append(lineNum);
-                clear();
                 hadAnError.set(true);
+                clear();
             }
         });
         if (errorMessage.length() > 0)
@@ -109,10 +105,5 @@ public final class TSDProcessor {
     public LinkedHashMap<String, Point2D> getDataPoints()
     {
         return dataPoints;
-    }
-
-    public LinkedHashMap<String, String> getDataLabels()
-    {
-        return dataLabels;
     }
 }

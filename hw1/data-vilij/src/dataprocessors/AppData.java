@@ -1,28 +1,29 @@
 package dataprocessors;
 
 import javafx.geometry.Point2D;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.chart.Chart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.TextArea;
-import settings.AppPropertyTypes;
 import ui.AppUI;
 import vilij.components.DataComponent;
-import vilij.components.Dialog;
 import vilij.components.ErrorDialog;
-import vilij.propertymanager.PropertyManager;
 import vilij.settings.PropertyTypes;
 import vilij.templates.ApplicationTemplate;
 
 import java.io.*;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
+
+import static settings.AppPropertyTypes.*;
+import static vilij.settings.PropertyTypes.*;
 
 /**
  * This is the concrete application-specific implementation of the data component defined by the Vilij framework.
@@ -34,98 +35,77 @@ public class AppData implements DataComponent {
 
     private TSDProcessor        processor;
     private ApplicationTemplate applicationTemplate;
-    protected Boolean hadAnError;
-    private List<String> names;
-    private Integer indexDup;
-    private List<String> lines; //
 
 
     public AppData(ApplicationTemplate applicationTemplate) {
         this.processor = new TSDProcessor();
         this.applicationTemplate = applicationTemplate;
-        hadAnError = false;
-        names = new ArrayList<>();
-        indexDup = -1;
-        lines = new ArrayList<>();
     }
 
     @Override
     public void loadData(Path dataFilePath) {
-//        clear();
         int lineCounter = 0;
         boolean moreThanTen = false;
+        // last iteration of while loop, do not end with line separator
         try {
             TextArea textArea = ((AppUI) applicationTemplate.getUIComponent()).getTextArea();
+            textArea.clear();
             BufferedReader bufferedReader = new BufferedReader(new FileReader(dataFilePath.toFile()));
-            String line;
-            StringBuilder stringBuilder = new StringBuilder();
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line);
-                stringBuilder.append("\n");
+            String lineRead;
+            String lines = "";
+            while ((lineRead = bufferedReader.readLine()) != null) {
+                lines += lineRead + System.lineSeparator();
                 lineCounter++;
-                if (lineCounter == 10) {
-                    textArea.setText(stringBuilder.toString());
+                if (lineCounter == 10)
+                    textArea.setText(lines.substring(0, lines.length()-1));
+                if (lineCounter > 10)
                     moreThanTen = true;
-                }
             }
             if (moreThanTen) {
                 ErrorDialog errorDialog = ErrorDialog.getDialog();
-                String errDialogTitle = "Load Warning";
-                String errDialogMsg = String.format("Loaded data consists of %s lines. Showing only the first 10 in the text area.", lineCounter);
+                String errDialogTitle = applicationTemplate.manager.getPropertyValue(LOAD_WARNING_TITLE.name());
+                String errDialogMsg = String.format(applicationTemplate.manager.getPropertyValue(OVER_TEN_LINES.name()), lineCounter);
                 errorDialog.show(errDialogTitle, errDialogMsg);
-                setTextAreaActions();
+                setTextAreaActions(Arrays.asList(lines.split(System.lineSeparator())));
             } else {
-                textArea.setText(stringBuilder.toString());
+                textArea.setText(lines);
             }
-            loadData(stringBuilder.toString());
+            loadData(lines);
             displayData();
         }
-        catch (Exception e) {
-            if (!hadAnError) {
-                String errLoadingTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
-                String errLoadingMsg = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.ERR_LOADING_TXT.name());
-                ErrorDialog errorDialog = ErrorDialog.getDialog();
-                errorDialog.show(errLoadingTitle, errLoadingMsg + lineCounter);
-            } else {
-                ErrorDialog     dialog   = (ErrorDialog) applicationTemplate.getDialog(Dialog.DialogType.ERROR);
-                PropertyManager manager  = applicationTemplate.manager;
-                String errTitle = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
-                String duplicateMsg = manager.getPropertyValue(AppPropertyTypes.DUPLICATE_ERR_MSG.name());
-                String duplicateMsgCont = lines.get(indexDup);
-                dialog.show(errTitle, duplicateMsg + duplicateMsgCont);
-            }
-        }
+        catch (IOException e) { System.err.println(e.getMessage()); }
     }
 
     public void loadData(String dataString) {
         try {
+            if (dataString.isEmpty()) return;
             processor.processString(dataString);
-            checkForDuplicates(dataString);
-            if (indexDup == -1)
-                hadAnError = false;
-            else
-                hadAnError = true;
+            int indexErr = checkForDuplicates(dataString);
 
-            if (hadAnError) {
-//                ErrorDialog     dialog   = (ErrorDialog) applicationTemplate.getDialog(Dialog.DialogType.ERROR);
-//                PropertyManager manager  = applicationTemplate.manager;
-//                String errTitle = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
-//                String duplicateMsg = manager.getPropertyValue(AppPropertyTypes.DUPLICATE_ERR_MSG.name());
-//                String duplicateMsgCont = lines.get(indexDup);
-//                dialog.show(errTitle, duplicateMsg + duplicateMsgCont);
-                throw new Exception();
+            if (indexErr != -1) {
+                List<String> lines = Arrays.asList(dataString.split(System.lineSeparator()));
+                String errLoadTitle = applicationTemplate.manager.getPropertyValue(LOAD_ERROR_TITLE.name());
+                String errDupMsg = applicationTemplate.manager.getPropertyValue(DUPLICATE_ERR_MSG.name());
+                String errDupCont = (indexErr + 1) + System.lineSeparator() + lines.get(indexErr);
+                ErrorDialog errorDialog = ErrorDialog.getDialog();
+                errorDialog.show(errLoadTitle, errDupMsg + errDupCont);
+                ((AppUI) applicationTemplate.getUIComponent()).getSaveButton().setDisable(true);
+                processor.hadAnError.set(true);
+                clear();
+            } else {
+                processor.hadAnError.set(false);
             }
+
         } catch (Exception e) {
-            // fixme
-            ErrorDialog     dialog   = (ErrorDialog) applicationTemplate.getDialog(Dialog.DialogType.ERROR);
-            PropertyManager manager  = applicationTemplate.manager;
-            String          errTitle = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
-            String          errMsg   = manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name());
-            String          errInput = manager.getPropertyValue(AppPropertyTypes.TEXT_AREA.name());
-            dialog.show(errTitle, errMsg + errInput);
-            clear();
-            ((AppUI) applicationTemplate.getUIComponent()).clearChart();
-            hadAnError = true;
+            // TODO: check if substring always works
+            String errLoadTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
+            String errLoadMsg =
+                    applicationTemplate.manager.getPropertyValue(OCCURRED_AT.name()) +
+                    e.getMessage().substring(e.getMessage().indexOf("\n")+1);
+            ErrorDialog errorDialog = ErrorDialog.getDialog();
+            errorDialog.show(errLoadTitle, errLoadMsg);
+            ((AppUI) applicationTemplate.getUIComponent()).getSaveButton().setDisable(true);
+            processor.hadAnError.set(true);
         }
     }
 
@@ -143,10 +123,6 @@ public class AppData implements DataComponent {
     @Override
     public void clear() {
         processor.clear();
-        names.clear();
-        lines = new ArrayList<>();
-        indexDup = -1;
-        hadAnError = false;
     }
 
     public void displayData() {
@@ -161,60 +137,50 @@ public class AppData implements DataComponent {
         ((AppUI) applicationTemplate.getUIComponent()).setTooltips();
     }
 
-    public Boolean getHadAnError() {
-        return hadAnError;
-    }
-
-    public void checkForDuplicates(String tsdString) {
-        // FIXME
-        indexDup = -1;
-        String[] linesArr = tsdString.split("\n");
-        lines = Arrays.asList(linesArr);
-        try {
-          Stream.of(tsdString.split("\n")).map(line -> Arrays.asList(line.split("\t"))).forEach(list -> {
-              String name = list.get(0);
-              names.add(name);
-          });
-          for (int i = 0; i < names.size(); i++) {
-              for (int j = i+1; j < names.size(); j++) {
-                  if (names.get(i).equals(names.get(j))) {
-                      indexDup = i;
-                      break;
-                  }
-              }
-          }
-//          names.clear();
+    private int checkForDuplicates(String tsdString)
+    {
+        List<String> names = new ArrayList<>();
+        Stream.of(tsdString.split("\n")).map(line -> Arrays.asList(line.split("\t"))).forEach(list -> {
+            String name = list.get(0);
+            names.add(name);
+        });
+        List<String> namesFromMap = new ArrayList<>(getDataPoints().keySet());
+        if (names.size() != namesFromMap.size()) {
+            for (int i = 0; i < namesFromMap.size(); i++) {
+                if (!namesFromMap.get(i).equals(names.get(i)))
+                    return i;
+            }
+            return namesFromMap.size();
         }
-        catch (Exception e) {
-
-        }
+        return -1;
     }
 
     /**
      * Helper method for loadData.
      * When there are fewer than 10 lines in oldValue,
      * the newValue should add on to the text area.
-     * FIXME
      */
-    private void setTextAreaActions() {
+    private void setTextAreaActions(List<String> lines) {
+        // assuming that there exists > 10 lines, inputted
         AtomicInteger index = new AtomicInteger(10);
         TextArea textArea = ((AppUI) applicationTemplate.getUIComponent()).getTextArea();
+        if (textArea.getText().isEmpty()) return;
         textArea.textProperty().addListener(((observable, oldValue, newValue) -> {
-            String[] prev = oldValue.split("\n");
-            if (prev.length < 10 && lines.size() > 10) {
-                if (index.get() >= lines.size()) {
-                    return;
-                }
-                Optional<String> curLine = Optional.of(String.valueOf(lines.get(index.get())));
-                if (curLine.isPresent()) {
-                    if (index.get() == 10) {
-                        textArea.setText(oldValue + curLine.get());
+            String[] before = oldValue.split(System.lineSeparator());
+            String[] after = newValue.split(System.lineSeparator());
+            if (before.length == 10 && after.length < 10) {
+                // before - after <- how many lines to show
+                String s = "";
+                for (int i = 0; i < before.length - after.length; i++) {
+                    if (index.get() < lines.size()) {
+                        s += lines.get(index.get()) + System.lineSeparator();
+                        index.getAndIncrement();
+                     } else {
+                        break;
                     }
-                    else {
-                        textArea.setText(oldValue + "\n" + curLine.get());
-                    }
-                    index.getAndIncrement();
                 }
+                if (s.length() > 0)
+                    textArea.setText(newValue + s.substring(0, s.length()-1));
             }
         }));
     }
@@ -232,16 +198,15 @@ public class AppData implements DataComponent {
                 yTotal += data.getYValue().doubleValue();
             }
         }
-        return yTotal / dataPoints.size();
+        return yTotal/dataPoints.size();
     }
 
     private void plotAvgY() {
         LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
         LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
         List<Double> xValues = new ArrayList<>();
-        dataPoints.values().forEach(value -> {
-            xValues.add(value.getX());
-        });
+        dataPoints.values().forEach(value -> xValues.add(value.getX()));
+        if (xValues.size() <= 1) return;
         Collections.sort(xValues);
         if (!xValues.isEmpty()) {
             Double xMin = xValues.get(0);
@@ -257,11 +222,12 @@ public class AppData implements DataComponent {
             series.getNode().lookup(".chart-series-line").setStyle(
                     "-fx-stroke: #0099ff; -fx-stroke-width: 4px;"
             );
-            series.getData().forEach(data -> {
-                data.getNode().lookup(".chart-line-symbol").setStyle("-fx-background-color: transparent;");
-            });
+            series.getData().forEach(data ->
+                    data.getNode().lookup(".chart-line-symbol").setStyle("-fx-background-color: transparent;"));
         }
-        // hide dots
-        // css using id
+    }
+
+    public AtomicBoolean hadAnError() {
+        return processor.hadAnError;
     }
 }

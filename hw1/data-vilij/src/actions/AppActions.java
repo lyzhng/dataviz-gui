@@ -3,11 +3,7 @@ package actions;
 import dataprocessors.AppData;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.ScatterChart;
-import javafx.scene.control.TextArea;
-import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -20,7 +16,6 @@ import vilij.components.ErrorDialog;
 import vilij.propertymanager.PropertyManager;
 import vilij.settings.PropertyTypes;
 import vilij.templates.ApplicationTemplate;
-import vilij.templates.UITemplate;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -28,10 +23,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.io.File.separator;
 import static vilij.settings.PropertyTypes.SAVE_WORK_TITLE;
@@ -74,10 +67,10 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleSaveRequest() {
         try {
-            Boolean hadAnError = ((AppData) applicationTemplate.getDataComponent()).getHadAnError();
-            if (isSaved() && !hadAnError) {
+            AtomicBoolean hadAnError = ((AppData) applicationTemplate.getDataComponent()).hadAnError();
+            if (isSaved() && !hadAnError.get()) {
                 save();
-            } else if (!isSaved() && !hadAnError){
+            } else if (!isSaved() && !hadAnError.get()){
                 promptToSave();
                 setIsUnsavedProperty(false);
             } else {
@@ -88,7 +81,7 @@ public final class AppActions implements ActionComponent {
                 errorDialog.show(errSaveTitle, errSaveMsg + errSaveMsgCont);
             }
 
-            if (isSaved()) {
+            if (isSaved() || hadAnError.get()) {
                 ((AppUI) (applicationTemplate.getUIComponent())).getSaveButton().setDisable(true);
             }
 
@@ -116,11 +109,6 @@ public final class AppActions implements ActionComponent {
             File selected = fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
             if (selected != null) {
                 applicationTemplate.getDataComponent().loadData(selected.toPath());
-//                String errLoadTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
-//                String errLoadMsg = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name());
-//                String errLoadMsgCont = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_FILE_LABEL.name());
-//                ErrorDialog errorDialog = ErrorDialog.getDialog();
-//                errorDialog.show(errLoadTitle, errLoadMsg + errLoadMsgCont);
             }
         } catch (Exception e) {
             String errLoadTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
@@ -159,11 +147,12 @@ public final class AppActions implements ActionComponent {
         File location = fileChooser.showSaveDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
 
         try {
+            String ext = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.PNG_EXT.name());
             if (bufferedImage != null && location != null)
-                ImageIO.write(bufferedImage, "png", location);
+                ImageIO.write(bufferedImage, ext, location);
 
         } catch (IOException e) {
-            System.out.println("Something went wrong with the screenshot request.");
+            errorHandlingHelper();
         }
     }
 
@@ -235,7 +224,7 @@ public final class AppActions implements ActionComponent {
         dialog.show(errTitle, errMsg + errInput);
     }
 
-    public boolean isSaved() {
+    private boolean isSaved() {
         return dataFilePath != null;
     }
 }
