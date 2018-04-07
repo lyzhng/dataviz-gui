@@ -32,11 +32,13 @@ public final class TSDProcessor {
     private LinkedHashMap<String, String> dataLabels;
     private LinkedHashMap<String, Point2D> dataPoints;
     protected AtomicBoolean hadAnError;
+    protected AtomicInteger lineNumber;
 
     public TSDProcessor() {
         dataLabels = new LinkedHashMap<>();
         dataPoints = new LinkedHashMap<>();
         hadAnError = new AtomicBoolean(false);
+        lineNumber = new AtomicInteger(1);
     }
 
     /**
@@ -46,7 +48,6 @@ public final class TSDProcessor {
      * @throws Exception if the input string does not follow the <code>.tsd</code> data format
      */
     public void processString(String tsdString) throws Exception {
-        AtomicInteger lineNum = new AtomicInteger(1);
         StringBuilder errorMessage = new StringBuilder();
         Stream.of(tsdString.split("\n")).map(line -> Arrays.asList(line.split("\t"))).forEach(list -> {
             try {
@@ -56,12 +57,12 @@ public final class TSDProcessor {
                 Point2D point = new Point2D(Double.parseDouble(pair[0]), Double.parseDouble(pair[1]));
                 dataLabels.put(name, label);
                 dataPoints.put(name, point);
-                lineNum.getAndIncrement();
+                lineNumber.getAndIncrement();
             } catch (Exception e) {
                 errorMessage.setLength(0);
                 errorMessage.append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
                 errorMessage.append("\n");
-                errorMessage.append(lineNum);
+                errorMessage.append(lineNumber);
                 hadAnError.set(true);
                 clear();
             }
@@ -94,6 +95,7 @@ public final class TSDProcessor {
     void clear() {
         dataPoints.clear();
         dataLabels.clear();
+        resetLineNumber();
     }
 
     private String checkedname(String name) throws InvalidDataNameException {
@@ -102,8 +104,12 @@ public final class TSDProcessor {
         return name;
     }
 
-    public LinkedHashMap<String, Point2D> getDataPoints()
-    {
-        return dataPoints;
-    }
+    public LinkedHashMap<String, Point2D> getDataPoints() { return dataPoints; }
+
+    public LinkedHashMap<String, String> getDataLabels() { return dataLabels; }
+
+    public AtomicInteger getLineNumber() { return lineNumber; }
+
+    private void resetLineNumber() { lineNumber.set(1); }
+
 }

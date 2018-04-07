@@ -101,6 +101,7 @@ public final class AppActions implements ActionComponent {
             AppData dataComponent = (AppData) applicationTemplate.getDataComponent();
             dataComponent.clear();
             FileChooser fileChooser = new FileChooser();
+            // FIXME: Not Generic
             FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Tab-Separated Data File (.*.tsd)", "*.tsd");
             fileChooser.getExtensionFilters().add(extensionFilter);
             String dataDirPath = separator + applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_RESOURCE_PATH.name());
@@ -108,7 +109,12 @@ public final class AppActions implements ActionComponent {
             fileChooser.setInitialDirectory(new File(dataDirURL.getFile()));
             File selected = fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
             if (selected != null) {
+                AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
                 applicationTemplate.getDataComponent().loadData(selected.toPath());
+                appUI.getTextArea().setVisible(true);
+                appUI.getTextArea().setDisable(true);
+                appUI.getStatsText().setVisible(true);
+                appUI.getAlgorithmSel().setVisible(true);
             }
         } catch (Exception e) {
             String errLoadTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());

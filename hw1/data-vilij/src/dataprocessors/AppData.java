@@ -1,9 +1,13 @@
 package dataprocessors;
 
 import javafx.geometry.Point2D;
+import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+import settings.AppPropertyTypes;
 import ui.AppUI;
 import vilij.components.DataComponent;
 import vilij.components.ErrorDialog;
@@ -11,17 +15,18 @@ import vilij.settings.PropertyTypes;
 import vilij.templates.ApplicationTemplate;
 
 import java.io.*;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.nio.file.Paths;
+import java.sql.Array;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
+import static java.io.File.*;
+import static java.io.File.separator;
 import static settings.AppPropertyTypes.*;
 import static vilij.settings.PropertyTypes.*;
 
@@ -48,6 +53,7 @@ public class AppData implements DataComponent {
         boolean moreThanTen = false;
         // last iteration of while loop, do not end with line separator
         try {
+            Text statsText = ((AppUI) applicationTemplate.getUIComponent()).getStatsText();
             TextArea textArea = ((AppUI) applicationTemplate.getUIComponent()).getTextArea();
             textArea.clear();
             BufferedReader bufferedReader = new BufferedReader(new FileReader(dataFilePath.toFile()));
@@ -71,6 +77,10 @@ public class AppData implements DataComponent {
                 textArea.setText(lines);
             }
             loadData(lines);
+
+            statsText.setText(String.format("%d instances with %d labels loaded from %s. The labels are: \n%s",
+                            processor.getLineNumber().get()-1, getNumberOfLabels(), dataFilePath.toString().substring(dataFilePath.toString().lastIndexOf(separator)+1), getLabelNames()));
+
             displayData();
         }
         catch (IOException e) { System.err.println(e.getMessage()); }
@@ -185,9 +195,7 @@ public class AppData implements DataComponent {
         }));
     }
 
-    public LinkedHashMap<String, Point2D> getDataPoints() {
-        return processor.getDataPoints();
-    }
+    public LinkedHashMap<String, Point2D> getDataPoints() { return processor.getDataPoints(); }
 
     private double findAvgY() {
         LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
@@ -227,7 +235,32 @@ public class AppData implements DataComponent {
         }
     }
 
-    public AtomicBoolean hadAnError() {
-        return processor.hadAnError;
+    public AtomicBoolean hadAnError() { return processor.hadAnError; }
+
+    public TSDProcessor getProcessor() { return processor; }
+
+    public LinkedHashMap<String, String> getDataLabels() { return processor.getDataLabels(); }
+
+    // wrong
+    public int getNumberOfLabels() {
+        Set<String> labelNames = new LinkedHashSet<>(getDataLabels().values());
+        labelNames.remove("null");
+        return labelNames.size();
+    }
+    // wrong
+    private Set<String> getLabelNamesList() {
+        Set<String> labelNames = new LinkedHashSet<>(getDataLabels().values());
+        Stream.of(labelNames)
+                .flatMap(Collection::stream)
+                .filter(s -> s.equals("null"))
+                .forEach(labelNames::remove);
+        return labelNames;
+    }
+
+    public String getLabelNames() {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String str : getLabelNamesList())
+            stringBuilder.append("- ").append(str).append(System.lineSeparator());
+        return stringBuilder.toString();
     }
 }

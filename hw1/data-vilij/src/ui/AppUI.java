@@ -2,6 +2,7 @@ package ui;
 
 import actions.AppActions;
 import dataprocessors.AppData;
+import dataprocessors.TSDProcessor;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
@@ -11,10 +12,7 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.chart.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -47,11 +45,13 @@ public final class AppUI extends UITemplate {
     ApplicationTemplate applicationTemplate;
 
     @SuppressWarnings("FieldCanBeLocal")
-    private Button                       scrnshotButton; // toolbar button to take a screenshot of the data
+    private Button scrnshotButton; // toolbar button to take a screenshot of the data
     private LineChart<Number, Number> chart;          // the chart where data will be displayed
-    private Button                       displayButton;  // workspace button to display data on the chart
-    private TextArea                       textArea;       // text area for new data input
-    private boolean                      hasNewText;     // whether or not the text area has any new data since last display
+    // private Button displayButton;  // workspace button to display data on the chart
+    private TextArea textArea;       // text area for new data input
+    private boolean hasNewText;     // whether or not the text area has any new data since last display
+    private Text statsText = new Text();
+    private ComboBox<String> algorithmSel = new ComboBox<>();
 
     public LineChart<Number, Number> getChart() { return chart; }
 
@@ -123,7 +123,7 @@ public final class AppUI extends UITemplate {
         chart.setVerticalGridLinesVisible(false);
 
         VBox leftPanel = new VBox(8);
-        leftPanel.setAlignment(Pos.TOP_CENTER);
+        leftPanel.setAlignment(Pos.TOP_LEFT);
         leftPanel.setPadding(new Insets(10));
 
         VBox.setVgrow(leftPanel, Priority.ALWAYS);
@@ -139,11 +139,18 @@ public final class AppUI extends UITemplate {
         textArea.setMinHeight(200);
 
         HBox processButtonsBox = new HBox();
-        displayButton = new Button(manager.getPropertyValue(AppPropertyTypes.DISPLAY_BUTTON_TEXT.name()));
+        /* displayButton = new Button(manager.getPropertyValue(AppPropertyTypes.DISPLAY_BUTTON_TEXT.name()));
         String read_only = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.READ_ONLY.name());
-        CheckBox checkBox = new CheckBox(read_only);
+        CheckBox checkBox = new CheckBox(read_only); */
         HBox.setHgrow(processButtonsBox, Priority.ALWAYS);
-        processButtonsBox.getChildren().addAll(displayButton, checkBox); // change margin
+        // processButtonsBox.getChildren().addAll(displayButton, checkBox); // change margin
+
+        // FIXME: Just added!
+        leftPanelTitle.setVisible(false);
+        textArea.setVisible(false);
+        /* displayButton.setVisible(false);
+        checkBox.setVisible(false);
+
         checkBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -153,8 +160,16 @@ public final class AppUI extends UITemplate {
                     textArea.setDisable(false);
                 }
             }
-        });
-        leftPanel.getChildren().addAll(leftPanelTitle, textArea, processButtonsBox);
+        }); */
+
+        statsText.setWrappingWidth(windowWidth * 0.29);
+        statsText.setVisible(false);
+        // FIXME: Generic
+        algorithmSel.getItems().addAll("Classification", "Clustering");
+        algorithmSel.setPromptText("Algorithm Type");
+        algorithmSel.setVisible(false);
+
+        leftPanel.getChildren().addAll(leftPanelTitle, textArea, processButtonsBox, statsText, algorithmSel);
 
         StackPane rightPanel = new StackPane(chart);
         rightPanel.setMaxSize(windowWidth * 0.69, windowHeight * 0.69);
@@ -166,23 +181,21 @@ public final class AppUI extends UITemplate {
 
         appPane.getChildren().add(workspace);
         VBox.setVgrow(appPane, Priority.ALWAYS);
+
     }
 
     private void setWorkspaceActions() {
         setTextAreaActions();
-        setDisplayButtonActions();
+        // setDisplayButtonActions();
         toggleScrnshotButton();
     }
 
     private void toggleScrnshotButton() {
-        chart.getData().addListener(new ListChangeListener<XYChart.Series<Number, Number>>() {
-            @Override
-            public void onChanged(Change<? extends XYChart.Series<Number, Number>> c) {
-                if (chart.getData().isEmpty()) {
-                    scrnshotButton.setDisable(true);
-                } else {
-                    scrnshotButton.setDisable(false);
-                }
+        chart.getData().addListener((ListChangeListener<XYChart.Series<Number, Number>>) c -> {
+            if (chart.getData().isEmpty()) {
+                scrnshotButton.setDisable(true);
+            } else {
+                scrnshotButton.setDisable(false);
             }
         });
     }
@@ -192,11 +205,7 @@ public final class AppUI extends UITemplate {
             try {
                 if (!newValue.equals(oldValue)) { // if text is changed
                     ((AppActions) applicationTemplate.getActionComponent()).setIsUnsavedProperty(true);
-                    if (newValue.isEmpty()) {
-                        hasNewText = true;
-                    } else {
-                        hasNewText = false;
-                    }
+                    hasNewText = newValue.isEmpty();
                     if (hasNewText) {
                         newButton.setDisable(true);
                         saveButton.setDisable(true);
@@ -211,7 +220,7 @@ public final class AppUI extends UITemplate {
         });
     }
 
-    private void setDisplayButtonActions() {
+    /* private void setDisplayButtonActions() {
         displayButton.setOnAction(event -> {
                 try {
                     AppData dataComponent = (AppData) applicationTemplate.getDataComponent();
@@ -224,15 +233,15 @@ public final class AppUI extends UITemplate {
                     e.printStackTrace();
                 }
         });
-    }
+    } */
 
-    public TextArea getTextArea() {
-        return textArea;
-    }
+    public TextArea getTextArea() { return textArea; }
 
-    public void clearChart() {
-        chart.getData().clear();
-    }
+    /* public Button getDisplayButton() {
+        return displayButton;
+    } */
+
+    public void clearChart() { chart.getData().clear(); }
 
     public void setTooltips() {
         LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
@@ -241,9 +250,7 @@ public final class AppUI extends UITemplate {
                 Double xValue = data.getXValue().doubleValue();
                 Double yValue = data.getYValue().doubleValue();
                 Point2D point = new Point2D(xValue, yValue);
-                data.getNode().setOnMouseEntered(event -> {
-                    data.getNode().setCursor(Cursor.CROSSHAIR);
-                });
+                data.getNode().setOnMouseEntered(event -> data.getNode().setCursor(Cursor.CROSSHAIR));
                 dataPoints.keySet().forEach(key -> {
                     if (dataPoints.get(key).equals(point)) {
                         Tooltip.install(data.getNode(), new Tooltip(key));
@@ -252,4 +259,8 @@ public final class AppUI extends UITemplate {
             }
         }
     }
+
+    public Text getStatsText() { return statsText; }
+
+    public ComboBox<String> getAlgorithmSel() { return algorithmSel; }
 }
