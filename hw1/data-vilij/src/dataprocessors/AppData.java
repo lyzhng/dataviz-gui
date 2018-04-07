@@ -76,11 +76,10 @@ public class AppData implements DataComponent {
             } else {
                 textArea.setText(lines);
             }
+            textArea.setDisable(true);
             loadData(lines);
-
-            statsText.setText(String.format("%d instances with %d labels loaded from %s. The labels are: \n%s",
+            statsText.setText(String.format("%d instance(s) with %d label(s) loaded from %s. The label(s) are: \n%s",
                             processor.getLineNumber().get()-1, getNumberOfLabels(), dataFilePath.toString().substring(dataFilePath.toString().lastIndexOf(separator)+1), getLabelNames()));
-
             displayData();
         }
         catch (IOException e) { System.err.println(e.getMessage()); }
@@ -96,7 +95,7 @@ public class AppData implements DataComponent {
                 List<String> lines = Arrays.asList(dataString.split(System.lineSeparator()));
                 String errLoadTitle = applicationTemplate.manager.getPropertyValue(LOAD_ERROR_TITLE.name());
                 String errDupMsg = applicationTemplate.manager.getPropertyValue(DUPLICATE_ERR_MSG.name());
-                String errDupCont = (indexErr + 1) + System.lineSeparator() + lines.get(indexErr);
+                String errDupCont = (indexErr+1) + System.lineSeparator() + lines.get(indexErr);
                 ErrorDialog errorDialog = ErrorDialog.getDialog();
                 errorDialog.show(errLoadTitle, errDupMsg + errDupCont);
                 ((AppUI) applicationTemplate.getUIComponent()).getSaveButton().setDisable(true);
@@ -169,6 +168,7 @@ public class AppData implements DataComponent {
      * Helper method for loadData.
      * When there are fewer than 10 lines in oldValue,
      * the newValue should add on to the text area.
+     * FIXME: Loaded over ten lines >> new.
      */
     private void setTextAreaActions(List<String> lines) {
         // assuming that there exists > 10 lines, inputted

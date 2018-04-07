@@ -11,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -52,6 +53,7 @@ public final class AppUI extends UITemplate {
     private boolean hasNewText;     // whether or not the text area has any new data since last display
     private Text statsText = new Text();
     private ComboBox<String> algorithmSel = new ComboBox<>();
+    private HBox toggles = new HBox();
 
     public LineChart<Number, Number> getChart() { return chart; }
 
@@ -92,6 +94,27 @@ public final class AppUI extends UITemplate {
         scrnshotButton.setOnAction(e -> ((AppActions) (applicationTemplate.getActionComponent())).handleScreenshotRequest());
     }
 
+    protected void setToggleListeners() {
+        ToggleButton editToggle = (ToggleButton) toggles.getChildren().get(0);
+        ToggleButton finishedToggle = (ToggleButton) toggles.getChildren().get(1);
+        editToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (editToggle.isSelected()) textArea.setDisable(false);
+        });
+        finishedToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (finishedToggle.isSelected() && !textArea.getText().isEmpty()) {
+                AppData appData = (AppData) applicationTemplate.getDataComponent();
+                clearChart();
+                applicationTemplate.getDataComponent().clear();
+                textArea.setDisable(true);
+                ((AppData) applicationTemplate.getDataComponent()).loadData(textArea.getText());
+                statsText.setText(String.format("%d instance(s) with %d label(s). The label(s) are: \n%s",
+                        appData.getProcessor().getLineNumber().get()-1, appData.getNumberOfLabels(), appData.getLabelNames()));
+                ((AppData) applicationTemplate.getDataComponent()).displayData();
+                ((AppActions) applicationTemplate.getActionComponent()).showStatsAndAlgorithm();
+            }
+        });
+    }
+
     @Override
     public void initialize() {
         layout();
@@ -100,8 +123,12 @@ public final class AppUI extends UITemplate {
 
     @Override
     public void clear() {
+        AppActions appActions = ((AppActions) applicationTemplate.getActionComponent());
         textArea.clear();
         clearChart();
+        appActions.hideTextArea();
+        appActions.hideStatsAndAlgorithm();
+        appActions.hideToggles();
     }
 
     public String getCurrentText() { return textArea.getText(); }
@@ -138,11 +165,11 @@ public final class AppUI extends UITemplate {
         textArea = new TextArea();
         textArea.setMinHeight(200);
 
-        HBox processButtonsBox = new HBox();
+        // HBox processButtonsBox = new HBox();
         /* displayButton = new Button(manager.getPropertyValue(AppPropertyTypes.DISPLAY_BUTTON_TEXT.name()));
         String read_only = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.READ_ONLY.name());
         CheckBox checkBox = new CheckBox(read_only); */
-        HBox.setHgrow(processButtonsBox, Priority.ALWAYS);
+        // HBox.setHgrow(processButtonsBox, Priority.ALWAYS);
         // processButtonsBox.getChildren().addAll(displayButton, checkBox); // change margin
 
         // FIXME: Just added!
@@ -164,12 +191,24 @@ public final class AppUI extends UITemplate {
 
         statsText.setWrappingWidth(windowWidth * 0.29);
         statsText.setVisible(false);
+        statsText.setManaged(false);
         // FIXME: Generic
         algorithmSel.getItems().addAll("Classification", "Clustering");
         algorithmSel.setPromptText("Algorithm Type");
         algorithmSel.setVisible(false);
-
-        leftPanel.getChildren().addAll(leftPanelTitle, textArea, processButtonsBox, statsText, algorithmSel);
+        algorithmSel.setVisible(false);
+        ToggleGroup group = new ToggleGroup();
+        ToggleButton editTextToggle = new ToggleButton("Edit Text");
+        editTextToggle.setToggleGroup(group);
+        ToggleButton doneWritingToggle = new ToggleButton("Done");
+        doneWritingToggle.setToggleGroup(group);
+        toggles.getChildren().addAll(editTextToggle, doneWritingToggle);
+        toggles.setVisible(false);
+        toggles.setManaged(false);
+        /* leftPanel.getChildren()
+                .addAll(leftPanelTitle, textArea, processButtonsBox, statsText, algorithmSel); */
+        leftPanel.getChildren()
+                .addAll(leftPanelTitle, textArea, toggles, statsText, algorithmSel);
 
         StackPane rightPanel = new StackPane(chart);
         rightPanel.setMaxSize(windowWidth * 0.69, windowHeight * 0.69);
@@ -182,12 +221,14 @@ public final class AppUI extends UITemplate {
         appPane.getChildren().add(workspace);
         VBox.setVgrow(appPane, Priority.ALWAYS);
 
+        newButton.setDisable(false);
     }
 
     private void setWorkspaceActions() {
         setTextAreaActions();
         // setDisplayButtonActions();
         toggleScrnshotButton();
+        setToggleListeners();
     }
 
     private void toggleScrnshotButton() {
@@ -263,4 +304,8 @@ public final class AppUI extends UITemplate {
     public Text getStatsText() { return statsText; }
 
     public ComboBox<String> getAlgorithmSel() { return algorithmSel; }
+
+    public Button getSaveButton() { return saveButton; }
+
+    public HBox getToggles() { return toggles; }
 }
