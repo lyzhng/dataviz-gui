@@ -61,7 +61,7 @@ public final class AppActions implements ActionComponent {
                 applicationTemplate.getUIComponent().clear();
                 isUnsaved.set(false);
                 dataFilePath = null;
-                appUI.getTextArea().setDisable(false);
+                enableTextArea();
                 showTextArea();
                 showToggles();
             }
@@ -115,7 +115,8 @@ public final class AppActions implements ActionComponent {
             if (selected != null) {
                 applicationTemplate.getDataComponent().loadData(selected.toPath());
                 showTextArea();
-                showStatsAndAlgorithm();
+                if (!dataComponent.hadAnError().get()) showStatsAndAlgorithm();
+                else hideStatsAndAlgorithm();
                 hideToggles();
             }
         } catch (Exception e) {
@@ -157,14 +158,24 @@ public final class AppActions implements ActionComponent {
 
     public void showToggles() {
         AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
-        appUI.getToggles().setVisible(true);
-        appUI.getToggles().setManaged(true);
+        appUI.getToggleButton().setVisible(true);
+        appUI.getToggleButton().setManaged(true);
+    }
+
+    public void enableTextArea() {
+        AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
+        appUI.getTextArea().setDisable(false);
+    }
+
+    public void disableTextArea() {
+        AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
+        appUI.getTextArea().setDisable(true);
     }
 
     public void hideToggles() {
         AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
-        appUI.getToggles().setVisible(false);
-        appUI.getToggles().setManaged(false);
+        appUI.getToggleButton().setVisible(false);
+        appUI.getToggleButton().setManaged(false);
     }
 
     @Override

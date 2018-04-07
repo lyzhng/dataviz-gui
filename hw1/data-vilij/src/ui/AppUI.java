@@ -53,7 +53,7 @@ public final class AppUI extends UITemplate {
     private boolean hasNewText;     // whether or not the text area has any new data since last display
     private Text statsText = new Text();
     private ComboBox<String> algorithmSel = new ComboBox<>();
-    private HBox toggles = new HBox();
+    private ToggleButton toggleButton;
 
     public LineChart<Number, Number> getChart() { return chart; }
 
@@ -94,23 +94,30 @@ public final class AppUI extends UITemplate {
         scrnshotButton.setOnAction(e -> ((AppActions) (applicationTemplate.getActionComponent())).handleScreenshotRequest());
     }
 
-    protected void setToggleListeners() {
-        ToggleButton editToggle = (ToggleButton) toggles.getChildren().get(0);
-        ToggleButton finishedToggle = (ToggleButton) toggles.getChildren().get(1);
-        editToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (editToggle.isSelected()) textArea.setDisable(false);
-        });
-        finishedToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (finishedToggle.isSelected() && !textArea.getText().isEmpty()) {
-                AppData appData = (AppData) applicationTemplate.getDataComponent();
+    protected void setToggleHandler() {
+        AppData dataComponent = ((AppData) applicationTemplate.getDataComponent());
+        AppActions actionComponent = ((AppActions) applicationTemplate.getActionComponent());
+        toggleButton.setOnAction(e -> {
+            if (textArea.getText().isEmpty()) toggleButton.setSelected(false);
+            else if (toggleButton.getText().equals("Done") && !textArea.getText().isEmpty()) {
                 clearChart();
                 applicationTemplate.getDataComponent().clear();
+
+                dataComponent.loadData(textArea.getText());
+                statsText.setText(String.format("%d instance(s) with %d label(s). The label(s) are: \n%s", dataComponent.getProcessor().getLineNumber().get()-1, dataComponent.getNumberOfLabels(), dataComponent.getLabelNames()));
+                dataComponent.displayData();
+
+                if (!dataComponent.hadAnError().get()) actionComponent.showStatsAndAlgorithm();
+                else actionComponent.hideStatsAndAlgorithm();
+
                 textArea.setDisable(true);
-                ((AppData) applicationTemplate.getDataComponent()).loadData(textArea.getText());
-                statsText.setText(String.format("%d instance(s) with %d label(s). The label(s) are: \n%s",
-                        appData.getProcessor().getLineNumber().get()-1, appData.getNumberOfLabels(), appData.getLabelNames()));
-                ((AppData) applicationTemplate.getDataComponent()).displayData();
-                ((AppActions) applicationTemplate.getActionComponent()).showStatsAndAlgorithm();
+                toggleButton.setText("Edit");
+                toggleButton.setSelected(false);
+            }
+            else if (toggleButton.getText().equals("Edit")) {
+                textArea.setDisable(false);
+                toggleButton.setText("Done");
+                toggleButton.setSelected(false);
             }
         });
     }
@@ -126,6 +133,7 @@ public final class AppUI extends UITemplate {
         AppActions appActions = ((AppActions) applicationTemplate.getActionComponent());
         textArea.clear();
         clearChart();
+        toggleButton.setText("Done");
         appActions.hideTextArea();
         appActions.hideStatsAndAlgorithm();
         appActions.hideToggles();
@@ -197,18 +205,14 @@ public final class AppUI extends UITemplate {
         algorithmSel.setPromptText("Algorithm Type");
         algorithmSel.setVisible(false);
         algorithmSel.setVisible(false);
-        ToggleGroup group = new ToggleGroup();
-        ToggleButton editTextToggle = new ToggleButton("Edit Text");
-        editTextToggle.setToggleGroup(group);
-        ToggleButton doneWritingToggle = new ToggleButton("Done");
-        doneWritingToggle.setToggleGroup(group);
-        toggles.getChildren().addAll(editTextToggle, doneWritingToggle);
-        toggles.setVisible(false);
-        toggles.setManaged(false);
+
+        toggleButton = new ToggleButton("Done");
+        toggleButton.setManaged(false);
+
         /* leftPanel.getChildren()
                 .addAll(leftPanelTitle, textArea, processButtonsBox, statsText, algorithmSel); */
         leftPanel.getChildren()
-                .addAll(leftPanelTitle, textArea, toggles, statsText, algorithmSel);
+                .addAll(leftPanelTitle, textArea, toggleButton, statsText, algorithmSel);
 
         StackPane rightPanel = new StackPane(chart);
         rightPanel.setMaxSize(windowWidth * 0.69, windowHeight * 0.69);
@@ -228,7 +232,7 @@ public final class AppUI extends UITemplate {
         setTextAreaActions();
         // setDisplayButtonActions();
         toggleScrnshotButton();
-        setToggleListeners();
+        setToggleHandler();
     }
 
     private void toggleScrnshotButton() {
@@ -276,13 +280,9 @@ public final class AppUI extends UITemplate {
         });
     } */
 
-    public TextArea getTextArea() { return textArea; }
-
     /* public Button getDisplayButton() {
         return displayButton;
     } */
-
-    public void clearChart() { chart.getData().clear(); }
 
     public void setTooltips() {
         LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
@@ -307,5 +307,9 @@ public final class AppUI extends UITemplate {
 
     public Button getSaveButton() { return saveButton; }
 
-    public HBox getToggles() { return toggles; }
+    public TextArea getTextArea() { return textArea; }
+
+    public void clearChart() { chart.getData().clear(); }
+
+    public ToggleButton getToggleButton() { return toggleButton; }
 }

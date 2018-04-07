@@ -1,5 +1,6 @@
 package dataprocessors;
 
+import actions.AppActions;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
@@ -80,6 +81,7 @@ public class AppData implements DataComponent {
             loadData(lines);
             statsText.setText(String.format("%d instance(s) with %d label(s) loaded from %s. The label(s) are: \n%s",
                             processor.getLineNumber().get()-1, getNumberOfLabels(), dataFilePath.toString().substring(dataFilePath.toString().lastIndexOf(separator)+1), getLabelNames()));
+
             displayData();
         }
         catch (IOException e) { System.err.println(e.getMessage()); }
@@ -109,7 +111,7 @@ public class AppData implements DataComponent {
             // TODO: check if substring always works
             String errLoadTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
             String errLoadMsg =
-                    applicationTemplate.manager.getPropertyValue(OCCURRED_AT.name()) +
+                    applicationTemplate.manager.getPropertyValue(INCORRECT_FORMAT.name()) +
                     e.getMessage().substring(e.getMessage().indexOf("\n")+1);
             ErrorDialog errorDialog = ErrorDialog.getDialog();
             errorDialog.show(errLoadTitle, errLoadMsg);
