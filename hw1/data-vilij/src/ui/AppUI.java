@@ -3,15 +3,19 @@ package ui;
 import actions.AppActions;
 import dataprocessors.AppData;
 import dataprocessors.TSDProcessor;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -53,6 +57,9 @@ public final class AppUI extends UITemplate {
     private VBox vbox = new VBox();
     private RadioButton classificationAlg = new RadioButton();
     private RadioButton clusteringAlg = new RadioButton();
+    private Button runButton = new Button("Run");
+    private boolean selectedClusteringAlg = false; // reset
+    private boolean selectedClassificationAlg = false;
 
     public LineChart<Number, Number> getChart() { return chart; }
 
@@ -115,8 +122,7 @@ public final class AppUI extends UITemplate {
                 }
                 showAlgorithmTypes();
                 chosenListHandler();
-                // chosen algorithm handler
-                // algorithmList
+                radioButtonHandler();
 
                 textArea.setDisable(true);
                 toggle.setText("Edit");
@@ -130,15 +136,16 @@ public final class AppUI extends UITemplate {
                 vbox.getChildren().get(0).setVisible(false);
                 vbox.getChildren().get(1).setManaged(false);
                 vbox.getChildren().get(1).setVisible(false);
+                hideRunButton();
+                classificationAlg.setSelected(false);
+                clusteringAlg.setSelected(false);
+                selectedClusteringAlg = false;
+                selectedClassificationAlg = false;
             }
         });
     }
 
     public void hideAlgorithmMethods() {
-        /* clusteringAlg.setVisible(false);
-        clusteringAlg.setManaged(false);
-        classificationAlg.setVisible(false);
-        classificationAlg.setManaged(false); */
         vbox.getChildren().get(0).setManaged(false);
         vbox.getChildren().get(0).setVisible(false);
     }
@@ -159,7 +166,23 @@ public final class AppUI extends UITemplate {
         hideAlgorithmTypes();
         hideToggles();
         hideAlgorithmLists();
-        algorithmSel.getSelectionModel().clearSelection();
+        if (algorithmSel.getSelectionModel().getSelectedItem() != null)
+            algorithmSel.getSelectionModel().clearSelection();
+        hideRunButton();
+        classificationAlg.setSelected(false);
+        clusteringAlg.setSelected(false);
+        selectedClusteringAlg = false;
+        selectedClassificationAlg = false;
+    }
+
+    public void hideRunButton() {
+        runButton.setVisible(false);
+        runButton.setManaged(false);
+    }
+
+    public void showRunButton() {
+        runButton.setVisible(true);
+        runButton.setManaged(true);
     }
 
     private void layout() {
@@ -215,6 +238,10 @@ public final class AppUI extends UITemplate {
         vbox.getChildren().add(hbox);
         leftPanel.getChildren().add(vbox);
 
+        leftPanel.getChildren().add(runButton);
+        runButton.setVisible(false);
+        runButton.setManaged(false);
+
         StackPane rightPanel = new StackPane(chart);
         rightPanel.setMaxSize(windowWidth * 0.69, windowHeight * 0.69);
         rightPanel.setMinSize(windowWidth * 0.69, windowHeight * 0.69);
@@ -235,6 +262,7 @@ public final class AppUI extends UITemplate {
         setTextAreaActions();
         toggleScrnshotButton();
         setToggleHandler();
+        configButtonHandler();
     }
 
     private void algorithmListInit() {
@@ -305,8 +333,6 @@ public final class AppUI extends UITemplate {
     public void clearChart() { chart.getData().clear(); }
     private void resetToggleText() { toggle.setText("Done"); }
     public String getCurrentText() { return textArea.getText(); }
-    public RadioButton getClassificationAlg() { return classificationAlg; }
-    public RadioButton getClusteringAlg() { return clusteringAlg; }
 
     public void hideStats() {
         statsText.setVisible(false);
@@ -361,6 +387,7 @@ public final class AppUI extends UITemplate {
             getAlgorithmSel().getItems().add(0, "Classification");
     }
 
+    // combo box as a whole
     public void chosenListHandler() {
         /* if there is a selected item, it will hide the ComboBox and show the respective algorithm's name */
         getAlgorithmSel().getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -372,18 +399,80 @@ public final class AppUI extends UITemplate {
                     vbox.getChildren().get(0).setManaged(true);
                     vbox.getChildren().get(1).setVisible(false);
                     vbox.getChildren().get(1).setManaged(false);
-                    System.out.println("CLASSIFICATION is selected. Hiding CLUSTERING.");
+                    selectedClassificationAlg = true;
                 }
                 if (getAlgorithmSel().getSelectionModel().getSelectedItem().equalsIgnoreCase("Clustering")) {
                     vbox.getChildren().get(0).setVisible(false);
                     vbox.getChildren().get(0).setManaged(false);
                     vbox.getChildren().get(1).setVisible(true);
                     vbox.getChildren().get(1).setManaged(true);
-                    System.out.println("CLUSTERING is selected. Hiding CLASSIFICATION.");
+                    selectedClusteringAlg = true;
                 }
             }
             hideAlgorithmTypes();
         });
     }
 
+    public void radioButtonHandler() {
+        classificationAlg.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (classificationAlg.isSelected()) {
+                showRunButton();
+            }
+        });
+        clusteringAlg.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (clusteringAlg.isSelected()) {
+                showRunButton();
+            }
+        });
+    }
+
+    /* show window when run button is set on action */
+    public void showRuntimeConfigWindow() {
+        Stage configWindow = new Stage();
+        configWindow.setTitle("Algorithm Run Configuration");
+
+        VBox vBox = new VBox(15);
+        HBox hBox = new HBox(10);
+        TextField iterField = new TextField("0");
+        TextField intervalField = new TextField("0");
+        CheckBox checkBox = new CheckBox();
+
+        hBox.getChildren().addAll(new Label("Max Iterations"), iterField);
+        hBox.setMaxWidth(300);
+        vBox.getChildren().add(hBox);
+
+        hBox = new HBox(10);
+        hBox.getChildren().addAll(new Label("Update Interval"), intervalField);
+        hBox.setMaxWidth(300);
+        vBox.getChildren().add(hBox);
+
+        if (selectedClusteringAlg) {
+            hBox = new HBox(10);
+            hBox.getChildren().addAll(new Label("Number of Labels"));
+            hBox.setMaxWidth(300);
+            vBox.getChildren().add(hBox);
+        }
+
+        hBox = new HBox(10);
+        hBox.getChildren().addAll(new Label("Continuous Run?"), checkBox);
+        hBox.setMaxWidth(300);
+        vBox.getChildren().add(hBox);
+
+        BorderPane pane = new BorderPane();
+        vBox.setAlignment(Pos.CENTER);
+        pane.setCenter(vBox);
+
+        configWindow.setScene(new Scene(pane, 350, 200));
+        configWindow.show();
+
+        // listener for intervalField - MUST be numbers & numbers > 0. else, default 0.
+
+        // listener for iterField
+
+    }
+
+    public void configButtonHandler() {
+        ((Button) ((HBox) vbox.getChildren().get(0)).getChildren().get(1)).setOnAction(event -> showRuntimeConfigWindow());
+        ((Button) ((HBox) vbox.getChildren().get(1)).getChildren().get(1)).setOnAction(event -> showRuntimeConfigWindow());
+    }
 }
