@@ -118,8 +118,6 @@ public class AppData implements DataComponent {
             errorDialog.show(errLoadTitle, errLoadMsg);
             ((AppUI) applicationTemplate.getUIComponent()).getSaveButton().setDisable(true);
             processor.hadAnError.set(true);
-            // FIXME: Just added.
-            ((AppUI) applicationTemplate.getUIComponent()).getTextArea().setText("");
         }
     }
 

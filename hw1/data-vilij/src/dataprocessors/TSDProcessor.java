@@ -82,10 +82,7 @@ public final class TSDProcessor {
         Set<String> labels = new HashSet<>(dataLabels.values());
         for (String label : labels) {
             XYChart.Series<Number, Number> series = new XYChart.Series<>();
-            if (label.equalsIgnoreCase("NULL"))
-                ; // set series id. @CSS, hide series legend
-            else
-                series.setName(label);
+            series.setName(label);
             dataLabels.entrySet().stream().filter(entry -> entry.getValue().equals(label)).forEach(entry -> {
                 Point2D point = dataPoints.get(entry.getKey());
                 series.getData().add(new XYChart.Data<>(point.getX(), point.getY()));
