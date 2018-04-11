@@ -50,9 +50,10 @@ public class AppData implements DataComponent {
 
     @Override
     public void loadData(Path dataFilePath) {
+        applicationTemplate.getUIComponent().clear();
+        clear();
         int lineCounter = 0;
         boolean moreThanTen = false;
-        // last iteration of while loop, do not end with line separator
         try {
             Text statsText = ((AppUI) applicationTemplate.getUIComponent()).getStatsText();
             TextArea textArea = ((AppUI) applicationTemplate.getUIComponent()).getTextArea();
@@ -117,6 +118,8 @@ public class AppData implements DataComponent {
             errorDialog.show(errLoadTitle, errLoadMsg);
             ((AppUI) applicationTemplate.getUIComponent()).getSaveButton().setDisable(true);
             processor.hadAnError.set(true);
+            // FIXME: Just added.
+            ((AppUI) applicationTemplate.getUIComponent()).getTextArea().setText("");
         }
     }
 
@@ -172,6 +175,7 @@ public class AppData implements DataComponent {
      * the newValue should add on to the text area.
      * FIXME: Loaded over ten lines >> new.
      */
+
     private void setTextAreaActions(List<String> lines) {
         // assuming that there exists > 10 lines, inputted
         AtomicInteger index = new AtomicInteger(10);
@@ -245,24 +249,17 @@ public class AppData implements DataComponent {
 
     // wrong
     public int getNumberOfLabels() {
-        Set<String> labelNames = new LinkedHashSet<>(getDataLabels().values());
-        labelNames.remove("null");
-        return labelNames.size();
-    }
-    // wrong
-    private Set<String> getLabelNamesList() {
-        Set<String> labelNames = new LinkedHashSet<>(getDataLabels().values());
-        Stream.of(labelNames)
-                .flatMap(Collection::stream)
-                .filter(s -> s.equals("null"))
-                .forEach(labelNames::remove);
-        return labelNames;
+        Set<String> labels = new LinkedHashSet<>(getDataLabels().values());
+        labels.removeIf(s -> s.equalsIgnoreCase("NULL"));
+        return labels.size();
     }
 
     public String getLabelNames() {
+        Set<String> labels = new LinkedHashSet<>(getDataLabels().values());
+        labels.removeIf(s -> s.equalsIgnoreCase("NULL"));
         StringBuilder stringBuilder = new StringBuilder();
-        for (String str : getLabelNamesList())
-            stringBuilder.append("- ").append(str).append(System.lineSeparator());
+        for (String label : labels)
+            stringBuilder.append("- ").append(label).append(System.lineSeparator());
         return stringBuilder.toString();
     }
 }

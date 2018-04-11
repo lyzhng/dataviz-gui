@@ -26,10 +26,7 @@ import vilij.templates.UITemplate;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 import static java.io.File.separator;
 import static vilij.settings.PropertyTypes.GUI_RESOURCE_PATH;
@@ -48,12 +45,14 @@ public final class AppUI extends UITemplate {
     @SuppressWarnings("FieldCanBeLocal")
     private Button scrnshotButton; // toolbar button to take a screenshot of the data
     private LineChart<Number, Number> chart;          // the chart where data will be displayed
-    // private Button displayButton;  // workspace button to display data on the chart
     private TextArea textArea;       // text area for new data input
     private boolean hasNewText;     // whether or not the text area has any new data since last display
     private Text statsText = new Text();
     private ComboBox<String> algorithmSel = new ComboBox<>();
-    private ToggleButton toggleButton;
+    private Button toggle = new Button();
+    private VBox vbox = new VBox();
+    private RadioButton classificationAlg = new RadioButton();
+    private RadioButton clusteringAlg = new RadioButton();
 
     public LineChart<Number, Number> getChart() { return chart; }
 
@@ -96,30 +95,52 @@ public final class AppUI extends UITemplate {
 
     protected void setToggleHandler() {
         AppData dataComponent = ((AppData) applicationTemplate.getDataComponent());
-        AppActions actionComponent = ((AppActions) applicationTemplate.getActionComponent());
-        toggleButton.setOnAction(e -> {
-            if (textArea.getText().isEmpty()) toggleButton.setSelected(false);
-            else if (toggleButton.getText().equals("Done") && !textArea.getText().isEmpty()) {
+        toggle.setOnAction(e -> {
+            if (textArea.getText().isEmpty())
+                return;
+            else if (toggle.getText().equals("Done") && !textArea.getText().isEmpty()) {
                 clearChart();
+                // hide radio buttons here FIXME
                 applicationTemplate.getDataComponent().clear();
-
+                // loading, updating, displaying
                 dataComponent.loadData(textArea.getText());
                 statsText.setText(String.format("%d instance(s) with %d label(s). The label(s) are: \n%s", dataComponent.getProcessor().getLineNumber().get()-1, dataComponent.getNumberOfLabels(), dataComponent.getLabelNames()));
                 dataComponent.displayData();
-
-                if (!dataComponent.hadAnError().get()) actionComponent.showStatsAndAlgorithm();
-                else actionComponent.hideStatsAndAlgorithm();
+                // show or hide statistics and algorithm types
+                if (!dataComponent.hadAnError().get())
+                    showStatsAndAlgorithm();
+                else {
+                    hideStats();
+                    hideAlgorithmTypes();
+                }
+                showAlgorithmTypes();
+                chosenListHandler();
+                // chosen algorithm handler
+                // algorithmList
 
                 textArea.setDisable(true);
-                toggleButton.setText("Edit");
-                toggleButton.setSelected(false);
+                toggle.setText("Edit");
             }
-            else if (toggleButton.getText().equals("Edit")) {
+
+            else if (toggle.getText().equals("Edit")) {
                 textArea.setDisable(false);
-                toggleButton.setText("Done");
-                toggleButton.setSelected(false);
+                toggle.setText("Done");
+                algorithmSel.getSelectionModel().clearSelection();
+                vbox.getChildren().get(0).setManaged(false);
+                vbox.getChildren().get(0).setVisible(false);
+                vbox.getChildren().get(1).setManaged(false);
+                vbox.getChildren().get(1).setVisible(false);
             }
         });
+    }
+
+    public void hideAlgorithmMethods() {
+        /* clusteringAlg.setVisible(false);
+        clusteringAlg.setManaged(false);
+        classificationAlg.setVisible(false);
+        classificationAlg.setManaged(false); */
+        vbox.getChildren().get(0).setManaged(false);
+        vbox.getChildren().get(0).setVisible(false);
     }
 
     @Override
@@ -130,19 +151,20 @@ public final class AppUI extends UITemplate {
 
     @Override
     public void clear() {
-        AppActions appActions = ((AppActions) applicationTemplate.getActionComponent());
         textArea.clear();
         clearChart();
-        toggleButton.setText("Done");
-        appActions.hideTextArea();
-        appActions.hideStatsAndAlgorithm();
-        appActions.hideToggles();
+        resetToggleText();
+        hideTextArea();
+        hideStats();
+        hideAlgorithmTypes();
+        hideToggles();
+        hideAlgorithmLists();
+        algorithmSel.getSelectionModel().clearSelection();
     }
-
-    public String getCurrentText() { return textArea.getText(); }
 
     private void layout() {
         PropertyManager manager = applicationTemplate.manager;
+        AppActions actionComponent = ((AppActions) applicationTemplate.getActionComponent());
         NumberAxis      xAxis   = new NumberAxis();
         NumberAxis      yAxis   = new NumberAxis();
         chart = new LineChart<>(xAxis, yAxis);
@@ -172,67 +194,61 @@ public final class AppUI extends UITemplate {
 
         textArea = new TextArea();
         textArea.setMinHeight(200);
-
-        // HBox processButtonsBox = new HBox();
-        /* displayButton = new Button(manager.getPropertyValue(AppPropertyTypes.DISPLAY_BUTTON_TEXT.name()));
-        String read_only = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.READ_ONLY.name());
-        CheckBox checkBox = new CheckBox(read_only); */
-        // HBox.setHgrow(processButtonsBox, Priority.ALWAYS);
-        // processButtonsBox.getChildren().addAll(displayButton, checkBox); // change margin
-
-        // FIXME: Just added!
         leftPanelTitle.setVisible(false);
-        textArea.setVisible(false);
-        /* displayButton.setVisible(false);
-        checkBox.setVisible(false);
-
-        checkBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                if (newValue) {
-                    textArea.setDisable(true);
-                } else {
-                    textArea.setDisable(false);
-                }
-            }
-        }); */
-
+        leftPanelTitle.setManaged(false);
+        hideTextArea();
         statsText.setWrappingWidth(windowWidth * 0.29);
-        statsText.setVisible(false);
-        statsText.setManaged(false);
-        // FIXME: Generic
-        algorithmSel.getItems().addAll("Classification", "Clustering");
-        algorithmSel.setPromptText("Algorithm Type");
-        algorithmSel.setVisible(false);
-        algorithmSel.setVisible(false);
+        algorithmSelInit();
+        hideStats();
+        hideAlgorithmTypes();
+        resetToggleText();
+        hideToggles();
+        algorithmListInit();
 
-        toggleButton = new ToggleButton("Done");
-        toggleButton.setManaged(false);
+        leftPanel.getChildren().addAll(leftPanelTitle, textArea, toggle, statsText, algorithmSel);
 
-        /* leftPanel.getChildren()
-                .addAll(leftPanelTitle, textArea, processButtonsBox, statsText, algorithmSel); */
-        leftPanel.getChildren()
-                .addAll(leftPanelTitle, textArea, toggleButton, statsText, algorithmSel);
+        HBox hbox = new HBox();
+        hbox.getChildren().addAll(classificationAlg, new Button("Config"));
+        vbox.getChildren().add(hbox);
+        hbox = new HBox();
+        hbox.getChildren().addAll(clusteringAlg, new Button("Config"));
+        vbox.getChildren().add(hbox);
+        leftPanel.getChildren().add(vbox);
 
         StackPane rightPanel = new StackPane(chart);
         rightPanel.setMaxSize(windowWidth * 0.69, windowHeight * 0.69);
         rightPanel.setMinSize(windowWidth * 0.69, windowHeight * 0.69);
         StackPane.setAlignment(rightPanel, Pos.CENTER);
-
         workspace = new HBox(leftPanel, rightPanel);
         HBox.setHgrow(workspace, Priority.ALWAYS);
-
         appPane.getChildren().add(workspace);
         VBox.setVgrow(appPane, Priority.ALWAYS);
-
         newButton.setDisable(false);
+    }
+
+    private void algorithmSelInit() {
+        algorithmSel.getItems().addAll("Classification", "Clustering");
+        algorithmSel.setPromptText("Algorithm Type");
     }
 
     private void setWorkspaceActions() {
         setTextAreaActions();
-        // setDisplayButtonActions();
         toggleScrnshotButton();
         setToggleHandler();
+    }
+
+    private void algorithmListInit() {
+        ToggleGroup group = new ToggleGroup();
+        classificationAlg.setText("Random Classification");
+        clusteringAlg.setText("Random Clustering");
+        classificationAlg.setToggleGroup(group);
+        clusteringAlg.setToggleGroup(group);
+        hideAlgorithmLists();
+    }
+
+    public void hideAlgorithmLists() {
+        vbox.setVisible(false);
+        vbox.setManaged(false);
     }
 
     private void toggleScrnshotButton() {
@@ -265,25 +281,6 @@ public final class AppUI extends UITemplate {
         });
     }
 
-    /* private void setDisplayButtonActions() {
-        displayButton.setOnAction(event -> {
-                try {
-                    AppData dataComponent = (AppData) applicationTemplate.getDataComponent();
-                    clearChart();
-                    dataComponent.clear();
-                    dataComponent.loadData(textArea.getText());
-                    dataComponent.displayData();
-                    toggleScrnshotButton();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-        });
-    } */
-
-    /* public Button getDisplayButton() {
-        return displayButton;
-    } */
-
     public void setTooltips() {
         LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
         for (XYChart.Series<Number, Number> series : chart.getData()) {
@@ -302,14 +299,91 @@ public final class AppUI extends UITemplate {
     }
 
     public Text getStatsText() { return statsText; }
-
     public ComboBox<String> getAlgorithmSel() { return algorithmSel; }
-
     public Button getSaveButton() { return saveButton; }
-
     public TextArea getTextArea() { return textArea; }
-
     public void clearChart() { chart.getData().clear(); }
+    private void resetToggleText() { toggle.setText("Done"); }
+    public String getCurrentText() { return textArea.getText(); }
+    public RadioButton getClassificationAlg() { return classificationAlg; }
+    public RadioButton getClusteringAlg() { return clusteringAlg; }
 
-    public ToggleButton getToggleButton() { return toggleButton; }
+    public void hideStats() {
+        statsText.setVisible(false);
+        statsText.setManaged(false);
+    }
+
+    public void hideAlgorithmTypes() {
+        algorithmSel.setVisible(false);
+        algorithmSel.setManaged(false);
+    }
+
+    public void showTextArea() {
+        textArea.setVisible(true);
+        textArea.setManaged(true);
+    }
+
+    public void hideTextArea() {
+        textArea.setManaged(false);
+        textArea.setVisible(false);
+    }
+
+    public void showStatsAndAlgorithm() {
+        statsText.setVisible(true);
+        statsText.setManaged(true);
+        algorithmSel.setVisible(true);
+        algorithmSel.setManaged(true);
+    }
+
+    public void showToggles() {
+        toggle.setVisible(true);
+        toggle.setManaged(true);
+    }
+
+    public void enableTextArea() {
+        textArea.setDisable(false);
+    }
+
+    public void disableTextArea() {
+        textArea.setDisable(true);
+    }
+
+    public void hideToggles() {
+       toggle.setVisible(false);
+       toggle.setManaged(false);
+    }
+
+    public void showAlgorithmTypes() {
+        AppData dataComponent = (AppData) applicationTemplate.getDataComponent();
+        if (dataComponent.getNumberOfLabels() != 2 && getAlgorithmSel().getItems().size() == 2)
+            getAlgorithmSel().getItems().remove(0);
+        if (dataComponent.getNumberOfLabels() == 2 && getAlgorithmSel().getItems().size() != 2) // only showing clustering
+            getAlgorithmSel().getItems().add(0, "Classification");
+    }
+
+    public void chosenListHandler() {
+        /* if there is a selected item, it will hide the ComboBox and show the respective algorithm's name */
+        getAlgorithmSel().getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (getAlgorithmSel().getSelectionModel().getSelectedItem() != null) {
+                vbox.setVisible(true);
+                vbox.setManaged(true);
+                if (getAlgorithmSel().getSelectionModel().getSelectedItem().equalsIgnoreCase("Classification")) {
+                    vbox.getChildren().get(0).setVisible(true);
+                    vbox.getChildren().get(0).setManaged(true);
+                    vbox.getChildren().get(1).setVisible(false);
+                    vbox.getChildren().get(1).setManaged(false);
+                    System.out.println("CLASSIFICATION is selected. Hiding CLUSTERING.");
+                }
+                if (getAlgorithmSel().getSelectionModel().getSelectedItem().equalsIgnoreCase("Clustering")) {
+                    vbox.getChildren().get(0).setVisible(false);
+                    vbox.getChildren().get(0).setManaged(false);
+                    vbox.getChildren().get(1).setVisible(true);
+                    vbox.getChildren().get(1).setManaged(true);
+                    System.out.println("CLUSTERING is selected. Hiding CLASSIFICATION.");
+                }
+            }
+            hideAlgorithmTypes();
+        });
+    }
+
 }

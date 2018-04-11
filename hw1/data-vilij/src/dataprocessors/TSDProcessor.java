@@ -6,6 +6,7 @@ import javafx.scene.chart.XYChart;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -79,11 +80,12 @@ public final class TSDProcessor {
 
     void toChartData(XYChart<Number, Number> chart) {
         Set<String> labels = new HashSet<>(dataLabels.values());
-        // create a new series for each distinct label
         for (String label : labels) {
             XYChart.Series<Number, Number> series = new XYChart.Series<>();
-            series.setName(label);
-            // adding the same labels to the same series
+            if (label.equalsIgnoreCase("NULL"))
+                ; // set series id. @CSS, hide series legend
+            else
+                series.setName(label);
             dataLabels.entrySet().stream().filter(entry -> entry.getValue().equals(label)).forEach(entry -> {
                 Point2D point = dataPoints.get(entry.getKey());
                 series.getData().add(new XYChart.Data<>(point.getX(), point.getY()));

@@ -2,8 +2,11 @@ package actions;
 
 import dataprocessors.AppData;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.chart.LineChart;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.image.WritableImage;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -56,14 +59,14 @@ public final class AppActions implements ActionComponent {
     public void handleNewRequest() {
         try {
             if (!isUnsaved.get() || promptToSave()) {
-                AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
+                AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
                 applicationTemplate.getDataComponent().clear();
                 applicationTemplate.getUIComponent().clear();
                 isUnsaved.set(false);
                 dataFilePath = null;
-                enableTextArea();
-                showTextArea();
-                showToggles();
+                uiComponent.enableTextArea();
+                uiComponent.showTextArea();
+                uiComponent.showToggles();
             }
         } catch (IOException e) { errorHandlingHelper(); }
     }
@@ -101,8 +104,9 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleLoadRequest() {
         try {
-            ((AppUI) (applicationTemplate.getUIComponent())).clearChart();
+            AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
             AppData dataComponent = (AppData) applicationTemplate.getDataComponent();
+            uiComponent.clearChart();
             dataComponent.clear();
             FileChooser fileChooser = new FileChooser();
             // FIXME: Not Generic
@@ -112,12 +116,22 @@ public final class AppActions implements ActionComponent {
             URL dataDirURL = getClass().getResource(dataDirPath);
             fileChooser.setInitialDirectory(new File(dataDirURL.getFile()));
             File selected = fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
+
             if (selected != null) {
                 applicationTemplate.getDataComponent().loadData(selected.toPath());
-                showTextArea();
-                if (!dataComponent.hadAnError().get()) showStatsAndAlgorithm();
-                else hideStatsAndAlgorithm();
-                hideToggles();
+                uiComponent.getSaveButton().setDisable(true);
+
+                if (!dataComponent.hadAnError().get())
+                    uiComponent.showStatsAndAlgorithm();
+                else {
+                    uiComponent.hideStats();
+                    uiComponent.hideAlgorithmTypes();
+                }
+
+                uiComponent.showTextArea();
+                uiComponent.hideToggles();
+                uiComponent.showAlgorithmTypes();
+                uiComponent.chosenListHandler();
             }
         } catch (Exception e) {
             String errLoadTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
@@ -126,56 +140,6 @@ public final class AppActions implements ActionComponent {
             ErrorDialog errorDialog = ErrorDialog.getDialog();
             errorDialog.show(errLoadTitle, errLoadMsg + errLoadMsgCont);
         }
-    }
-
-    public void showTextArea() {
-        AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
-        appUI.getTextArea().setVisible(true);
-        appUI.getTextArea().setManaged(true);
-    }
-
-    public void hideTextArea() {
-        AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
-        appUI.getTextArea().setManaged(false);
-        appUI.getTextArea().setVisible(false);
-    }
-
-    public void showStatsAndAlgorithm() {
-        AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
-        appUI.getStatsText().setVisible(true);
-        appUI.getStatsText().setManaged(true);
-        appUI.getAlgorithmSel().setVisible(true);
-        appUI.getAlgorithmSel().setManaged(true);
-    }
-
-    public void hideStatsAndAlgorithm() {
-        AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
-        appUI.getStatsText().setVisible(false);
-        appUI.getStatsText().setManaged(false);
-        appUI.getAlgorithmSel().setVisible(false);
-        appUI.getAlgorithmSel().setManaged(false);
-    }
-
-    public void showToggles() {
-        AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
-        appUI.getToggleButton().setVisible(true);
-        appUI.getToggleButton().setManaged(true);
-    }
-
-    public void enableTextArea() {
-        AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
-        appUI.getTextArea().setDisable(false);
-    }
-
-    public void disableTextArea() {
-        AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
-        appUI.getTextArea().setDisable(true);
-    }
-
-    public void hideToggles() {
-        AppUI appUI = ((AppUI) applicationTemplate.getUIComponent());
-        appUI.getToggleButton().setVisible(false);
-        appUI.getToggleButton().setManaged(false);
     }
 
     @Override
@@ -286,6 +250,4 @@ public final class AppActions implements ActionComponent {
     private boolean isSaved() {
         return dataFilePath != null;
     }
-
-    public Path getDataFilePath() { return dataFilePath; }
 }
