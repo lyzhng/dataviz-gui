@@ -40,7 +40,6 @@ public enum AppPropertyTypes {
     INCORRECT_FORMAT,
     DATA_FILE_LABEL,
     READ_ONLY,
-    CSS_RESOURCE_PATH,
     CSS_FILE_NAME,
     PNG_EXT,
     OVER_TEN_LINES,

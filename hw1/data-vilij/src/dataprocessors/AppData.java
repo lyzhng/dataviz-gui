@@ -1,14 +1,10 @@
 package dataprocessors;
 
-import actions.AppActions;
 import javafx.geometry.Point2D;
-import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import settings.AppPropertyTypes;
 import ui.AppUI;
 import vilij.components.DataComponent;
 import vilij.components.ErrorDialog;
@@ -16,17 +12,13 @@ import vilij.settings.PropertyTypes;
 import vilij.templates.ApplicationTemplate;
 
 import java.io.*;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.Array;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static java.io.File.*;
 import static java.io.File.separator;
 import static settings.AppPropertyTypes.*;
 import static vilij.settings.PropertyTypes.*;
@@ -81,7 +73,7 @@ public class AppData implements DataComponent {
             textArea.setDisable(true);
             loadData(lines);
             statsText.setText(String.format("%d instance(s) with %d label(s) loaded from %s. The label(s) are: \n%s",
-                            processor.getLineNumber().get()-1, getNumberOfLabels(), dataFilePath.toString().substring(dataFilePath.toString().lastIndexOf(separator)+1), getLabelNames()));
+                            processor.getLineNumber().get()-1, getNumberOfLabels(), dataFilePath.toString(), getLabelNames()));
 
             displayData();
         }

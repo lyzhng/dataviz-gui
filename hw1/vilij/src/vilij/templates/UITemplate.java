@@ -37,7 +37,6 @@ public class UITemplate implements UIComponent {
     protected String  loadiconPath;     // path to the 'load' icon
     protected String  exiticonPath;     // path to the 'save' icon
     protected String  logoPath;         // path to the Vilij logo icon
-    protected String  cssPath;          // path to the CSS file used for stylization of the user interface
     protected Stage   primaryStage;     // the application window
     protected Scene   primaryScene;     // the scene graph
     protected Pane    appPane;          // the root node in the scene graph, to organize the containers
@@ -115,12 +114,6 @@ public class UITemplate implements UIComponent {
         exiticonPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue(EXIT_ICON.name()));
         printiconPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue(PRINT_ICON.name()));
         logoPath = String.join(SEPARATOR, iconsPath, manager.getPropertyValue(LOGO.name()));
-
-        cssPath = SEPARATOR + String.join(SEPARATOR,
-                                          manager.getPropertyValue(GUI_RESOURCE_PATH.name()),
-                                          manager.getPropertyValue(CSS_RESOURCE_PATH.name()),
-                                          manager.getPropertyValue(CSS_RESOURCE_FILENAME.name()));
-
         logo = new Image(getClass().getResourceAsStream(logoPath));
 
     }

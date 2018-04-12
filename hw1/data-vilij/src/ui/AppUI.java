@@ -2,19 +2,11 @@ package ui;
 
 import actions.AppActions;
 import dataprocessors.AppData;
-import dataprocessors.TSDProcessor;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
@@ -27,9 +19,8 @@ import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static java.io.File.separator;
@@ -45,12 +36,14 @@ public final class AppUI extends UITemplate {
 
     /** The application to which this class of actions belongs. */
     ApplicationTemplate applicationTemplate;
+    ConfigurationWindow configurationWindow = new ConfigurationWindow();
 
     @SuppressWarnings("FieldCanBeLocal")
     private Button scrnshotButton; // toolbar button to take a screenshot of the data
     private LineChart<Number, Number> chart;          // the chart where data will be displayed
     private TextArea textArea;       // text area for new data input
     private boolean hasNewText;     // whether or not the text area has any new data since last display
+
     private Text statsText = new Text();
     private ComboBox<String> algorithmSel = new ComboBox<>();
     private Button toggle = new Button();
@@ -58,8 +51,7 @@ public final class AppUI extends UITemplate {
     private RadioButton classificationAlg = new RadioButton();
     private RadioButton clusteringAlg = new RadioButton();
     private Button runButton = new Button("Run");
-    private boolean selectedClusteringAlg = false; // reset
-    private boolean selectedClassificationAlg = false;
+    private boolean selectedClusteringAlg = false;
 
     public LineChart<Number, Number> getChart() { return chart; }
 
@@ -140,7 +132,6 @@ public final class AppUI extends UITemplate {
                 classificationAlg.setSelected(false);
                 clusteringAlg.setSelected(false);
                 selectedClusteringAlg = false;
-                selectedClassificationAlg = false;
             }
         });
     }
@@ -172,7 +163,6 @@ public final class AppUI extends UITemplate {
         classificationAlg.setSelected(false);
         clusteringAlg.setSelected(false);
         selectedClusteringAlg = false;
-        selectedClassificationAlg = false;
     }
 
     public void hideRunButton() {
@@ -193,10 +183,7 @@ public final class AppUI extends UITemplate {
         chart = new LineChart<>(xAxis, yAxis);
 
         // external spreadsheet to chart_style.css
-        String dirPath = separator + applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CSS_RESOURCE_PATH.name());
-        URL dirPathURL = getClass().getResource(dirPath);
-        String cssPath = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CSS_FILE_NAME.name());
-        chart.getStylesheets().add(dirPathURL + separator + cssPath);
+        chart.getStylesheets().add(getClass().getResource(manager.getPropertyValue(AppPropertyTypes.CSS_FILE_NAME.name())).toExternalForm());
 
         chart.setTitle(manager.getPropertyValue(AppPropertyTypes.CHART_TITLE.name()));
         chart.setHorizontalGridLinesVisible(false);
@@ -399,7 +386,6 @@ public final class AppUI extends UITemplate {
                     vbox.getChildren().get(0).setManaged(true);
                     vbox.getChildren().get(1).setVisible(false);
                     vbox.getChildren().get(1).setManaged(false);
-                    selectedClassificationAlg = true;
                 }
                 if (getAlgorithmSel().getSelectionModel().getSelectedItem().equalsIgnoreCase("Clustering")) {
                     vbox.getChildren().get(0).setVisible(false);
@@ -426,15 +412,14 @@ public final class AppUI extends UITemplate {
         });
     }
 
-    /* show window when run button is set on action */
     public void showRuntimeConfigWindow() {
         Stage configWindow = new Stage();
         configWindow.setTitle("Algorithm Run Configuration");
 
         VBox vBox = new VBox(15);
         HBox hBox = new HBox(10);
-        TextField iterField = new TextField("0");
-        TextField intervalField = new TextField("0");
+        TextField iterField = new TextField();
+        TextField intervalField = new TextField();
         CheckBox checkBox = new CheckBox();
 
         hBox.getChildren().addAll(new Label("Max Iterations"), iterField);
@@ -458,6 +443,9 @@ public final class AppUI extends UITemplate {
         hBox.setMaxWidth(300);
         vBox.getChildren().add(hBox);
 
+        Button okButton = new Button("OK");
+        vBox.getChildren().add(okButton);
+
         BorderPane pane = new BorderPane();
         vBox.setAlignment(Pos.CENTER);
         pane.setCenter(vBox);
@@ -465,9 +453,20 @@ public final class AppUI extends UITemplate {
         configWindow.setScene(new Scene(pane, 350, 200));
         configWindow.show();
 
-        // listener for intervalField - MUST be numbers & numbers > 0. else, default 0.
+        okButton.setOnAction(event -> {
+            boolean valid = iterField.getText().matches("\\d+") &&
+                    Integer.parseInt(iterField.getText()) >= 0 &&
+                    intervalField.getText().matches("\\d+") &&
+                    Integer.parseInt(intervalField.getText()) >= 0;
+            if (valid) {
+                // save the data; clustering, classification fields,
+                // set boolean to true
+                // once boolean is set to true, have a listener for the run button
+            } else {
 
-        // listener for iterField
+            }
+            configWindow.close();
+        });
 
     }
 
@@ -475,4 +474,8 @@ public final class AppUI extends UITemplate {
         ((Button) ((HBox) vbox.getChildren().get(0)).getChildren().get(1)).setOnAction(event -> showRuntimeConfigWindow());
         ((Button) ((HBox) vbox.getChildren().get(1)).getChildren().get(1)).setOnAction(event -> showRuntimeConfigWindow());
     }
+
+    public boolean isSelectedClusteringAlg() { return selectedClusteringAlg; }
+
+
 }

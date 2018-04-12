@@ -17,8 +17,6 @@ public enum PropertyTypes {
 
     /* resource files and folders */
     GUI_RESOURCE_PATH,
-    CSS_RESOURCE_PATH,
-    CSS_RESOURCE_FILENAME,
     ICONS_RESOURCE_PATH,
 
     /* user interface icon file names */

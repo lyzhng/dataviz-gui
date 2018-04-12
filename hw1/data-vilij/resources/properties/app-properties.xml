@@ -47,11 +47,10 @@ functionality within the main workspace. -->
         <property name="ERR_LOADING_TXT" value="Error loading: Line "/>
         <property name="INCORRECT_FORMAT" value="Format error: Line "/>
         <property name="READ_ONLY" value="Read-only" />
-        <property name="CSS_RESOURCE_PATH" value="css"/>
-        <property name="CSS_FILE_NAME" value="chart_style.css"/>
         <property name="PNG_EXT" value="png"/>
         <property name="OVER_TEN_LINES" value="Loaded data consists of %s lines. Showing only the first 10 in the text area." />
         <property name="LOAD_WARNING_TITLE" value="Load Warning" />
+        <property name="CSS_FILE_NAME" value="/css/chart_style.css"/>
     </property_list>
     <property_options_list/>
 </properties>
