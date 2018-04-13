@@ -27,7 +27,6 @@ functionality within the main workspace. -->
         <property name="SAVE_UNSAVED_WORK" value="Would you like to save current work?"/>
 
         <!-- APPLICATION-SPECIFIC PARAMETERS -->
-        <property name="DATA_FILE_EXT" value=".tsd"/>
         <property name="DATA_FILE_EXT_DESC" value="Tab-Separated Data File"/>
         <property name="TEXT_AREA" value="text area"/>
         <property name="SPECIFIED_FILE" value=" specified file"/>
@@ -40,7 +39,6 @@ functionality within the main workspace. -->
         <property name="DISPLAY_LABEL" value="Display"/>
         <property name="DATA_FILE_LABEL" value="Data File"/>
         <property name="CHART_TITLE" value="Data Visualization"/>
-        <property name="TSD_EXT_TITLE" value=" (.*.tsd)"/>
         <property name="INITIAL_FILE_NAME" value="Untitled.tsd"/>
         <property name="SEPARATOR" value="/"/>
         <property name="DUPLICATE_ERR_MSG" value="Duplicate data: Line "/>
@@ -50,7 +48,28 @@ functionality within the main workspace. -->
         <property name="PNG_EXT" value="png"/>
         <property name="OVER_TEN_LINES" value="Loaded data consists of %s lines. Showing only the first 10 in the text area." />
         <property name="LOAD_WARNING_TITLE" value="Load Warning" />
-        <property name="CSS_FILE_NAME" value="/css/chart_style.css"/>
+        <property name="CHART_CSS" value="/css/chart_style.css"/>
+        <property name="TEXTAREA_CSS" value="/css/textarea_style.css" />
+        <property name="MAX_ITERATIONS" value="Max Iterations" />
+        <property name="UPDATE_INTERVAL" value="Update Interval" />
+        <property name="CONTINUOUS_RUN" value="Continuous Run?" />
+        <property name="APPLY" value="Apply" />
+        <property name="NUM_CLUSTERS" value="Number of Clusters" />
+        <property name="RUN" value="Run" />
+        <property name="CONFIGURATION" value="Configuration" />
+        <property name="ALGORITHM_TYPE" value="Algorithm Type" />
+        <property name="CLASSIFICATION" value="Classification" />
+        <property name="CLUSTERING" value="Clustering" />
+        <property name="RANDOM_CLASSIFICATION" value="Random Classification" />
+        <property name="RANDOM_CLUSTERING" value="Random Clustering" />
+        <property name="FIELD_PROMPT_TEXT" value="Enter an integer (i ≥ 0)" />
+        <property name="EDIT" value="Edit" />
+        <property name="DONE" value="Done" />
+        <property name="TSD_FULL_NAME" value="Tab-Separated Data File (.*.tsd)" />
+        <property name="TSD_EXT" value="*.tsd" />
+        <property name="NULL" value="null" />
+        <property name="CONFIG_WINDOW_TITLE" value="Algorithm Run Configuration" />
+        <property name="AVG" value="AVG" />
     </property_list>
     <property_options_list/>
 </properties>

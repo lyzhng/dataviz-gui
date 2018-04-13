@@ -5,6 +5,7 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.TextArea;
 import javafx.scene.text.Text;
+import settings.AppPropertyTypes;
 import ui.AppUI;
 import vilij.components.DataComponent;
 import vilij.components.ErrorDialog;
@@ -19,7 +20,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static java.io.File.separator;
 import static settings.AppPropertyTypes.*;
 import static vilij.settings.PropertyTypes.*;
 
@@ -44,8 +44,8 @@ public class AppData implements DataComponent {
     public void loadData(Path dataFilePath) {
         applicationTemplate.getUIComponent().clear();
         clear();
-        int lineCounter = 0;
-        boolean moreThanTen = false;
+        // int lineCounter = 0;
+        // boolean moreThanTen = false;
         try {
             Text statsText = ((AppUI) applicationTemplate.getUIComponent()).getStatsText();
             TextArea textArea = ((AppUI) applicationTemplate.getUIComponent()).getTextArea();
@@ -55,13 +55,14 @@ public class AppData implements DataComponent {
             String lines = "";
             while ((lineRead = bufferedReader.readLine()) != null) {
                 lines += lineRead + System.lineSeparator();
-                lineCounter++;
-                if (lineCounter == 10)
+                // lineCounter++;
+                /* if (lineCounter == 10)
                     textArea.setText(lines.substring(0, lines.length()-1));
-                if (lineCounter > 10)
-                    moreThanTen = true;
+                    */
+                /* if (lineCounter > 10)
+                    moreThanTen = true; */
             }
-            if (moreThanTen) {
+            /* if (moreThanTen) {
                 ErrorDialog errorDialog = ErrorDialog.getDialog();
                 String errDialogTitle = applicationTemplate.manager.getPropertyValue(LOAD_WARNING_TITLE.name());
                 String errDialogMsg = String.format(applicationTemplate.manager.getPropertyValue(OVER_TEN_LINES.name()), lineCounter);
@@ -69,11 +70,12 @@ public class AppData implements DataComponent {
                 setTextAreaActions(Arrays.asList(lines.split(System.lineSeparator())));
             } else {
                 textArea.setText(lines);
-            }
-            textArea.setDisable(true);
+            } */
+            textArea.setText(lines);
+            textArea.setEditable(false);
+            textArea.getStylesheets().add((getClass().getResource(TEXTAREA_CSS.name()).toExternalForm()));
             loadData(lines);
-            statsText.setText(String.format("%d instance(s) with %d label(s) loaded from %s. The label(s) are: \n%s",
-                            processor.getLineNumber().get()-1, getNumberOfLabels(), dataFilePath.toString(), getLabelNames()));
+            statsText.setText(String.format("%d instance(s) with %d label(s) loaded from %s. The label(s) are:\n%s", processor.getLineNumber().get()-1, getNumberOfLabels(), dataFilePath.toString(), getLabelNames()));
 
             displayData();
         }
@@ -133,12 +135,12 @@ public class AppData implements DataComponent {
         LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
         processor.toChartData(chart);
         plotAvgY();
-        //  make lines invisible here
         chart.lookupAll(".chart-series-line").forEach(node -> {
             if (!(node.lookup("#avg-series") == node))
                 node.setStyle("-fx-stroke:null;");
         });
         ((AppUI) applicationTemplate.getUIComponent()).setTooltips();
+
     }
 
     private int checkForDuplicates(String tsdString)
@@ -163,7 +165,6 @@ public class AppData implements DataComponent {
      * Helper method for loadData.
      * When there are fewer than 10 lines in oldValue,
      * the newValue should add on to the text area.
-     * FIXME: Loaded over ten lines >> new.
      */
 
     private void setTextAreaActions(List<String> lines) {
@@ -175,7 +176,6 @@ public class AppData implements DataComponent {
             String[] before = oldValue.split(System.lineSeparator());
             String[] after = newValue.split(System.lineSeparator());
             if (before.length == 10 && after.length < 10) {
-                // before - after <- how many lines to show
                 String s = "";
                 for (int i = 0; i < before.length - after.length; i++) {
                     if (index.get() < lines.size()) {
@@ -222,12 +222,14 @@ public class AppData implements DataComponent {
             series.getData().add(new XYChart.Data<>(maxPoint.getX(), maxPoint.getY()));
             chart.getData().add(series);
             series.getNode().setId("avg-series");
-            series.setName("AVG");
-            series.getNode().lookup(".chart-series-line").setStyle(
-                    "-fx-stroke: #0099ff; -fx-stroke-width: 4px;"
-            );
+            series.setName(applicationTemplate.manager.getPropertyValue(AVG.name()));
+
+            series.getNode().lookup(".chart-series-line").setStyle("-fx-stroke-width: 4px;");
+
             series.getData().forEach(data ->
-                    data.getNode().lookup(".chart-line-symbol").setStyle("-fx-background-color: transparent;"));
+                    data.getNode().lookup(".chart-line-symbol")
+                            .setStyle("-fx-background-color: transparent;"));
+
         }
     }
 
@@ -240,16 +242,16 @@ public class AppData implements DataComponent {
     // wrong
     public int getNumberOfLabels() {
         Set<String> labels = new LinkedHashSet<>(getDataLabels().values());
-        labels.removeIf(s -> s.equalsIgnoreCase("NULL"));
+        labels.removeIf(s -> s.equalsIgnoreCase(applicationTemplate.manager.getPropertyValue(NULL.name())));
         return labels.size();
     }
 
     public String getLabelNames() {
         Set<String> labels = new LinkedHashSet<>(getDataLabels().values());
-        labels.removeIf(s -> s.equalsIgnoreCase("NULL"));
+        labels.removeIf(s -> s.equalsIgnoreCase(applicationTemplate.manager.getPropertyValue(NULL.name())));
         StringBuilder stringBuilder = new StringBuilder();
         for (String label : labels)
-            stringBuilder.append("- ").append(label).append(System.lineSeparator());
+            stringBuilder.append("– ").append(label).append(System.lineSeparator());
         return stringBuilder.toString();
     }
 }

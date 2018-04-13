@@ -1,5 +1,3 @@
-/* border content */
-
 .chart-plot-background {
   -fx-border-width: 8px;
   -fx-border-color: black;
@@ -34,5 +32,3 @@
 .chart-legend-item {
     -fx-text-fill: #191970;
 }
-
-/* .chart-symbol */

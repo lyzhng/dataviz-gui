@@ -27,6 +27,8 @@ import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.io.File.separator;
+import static settings.AppPropertyTypes.*;
+import static vilij.settings.PropertyTypes.*;
 import static vilij.settings.PropertyTypes.SAVE_WORK_TITLE;
 
 /**
@@ -63,6 +65,7 @@ public final class AppActions implements ActionComponent {
                 dataFilePath = null;
                 uiComponent.enableTextArea();
                 uiComponent.showTextArea();
+                uiComponent.getTextArea().setEditable(true);
                 uiComponent.showToggles();
             }
         } catch (IOException e) { errorHandlingHelper(); }
@@ -78,9 +81,9 @@ public final class AppActions implements ActionComponent {
                 promptToSave();
                 setIsUnsavedProperty(false);
             } else {
-                String errSaveTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_TITLE.name());
-                String errSaveMsg = applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_MSG.name());
-                String errSaveMsgCont = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_FILE_LABEL.name());
+                String errSaveTitle = applicationTemplate.manager.getPropertyValue(SAVE_ERROR_TITLE.name());
+                String errSaveMsg = applicationTemplate.manager.getPropertyValue(SAVE_ERROR_MSG.name());
+                String errSaveMsgCont = applicationTemplate.manager.getPropertyValue(DATA_FILE_LABEL.name());
                 ErrorDialog errorDialog = ErrorDialog.getDialog();
                 errorDialog.show(errSaveTitle, errSaveMsg + errSaveMsgCont);
             }
@@ -90,9 +93,9 @@ public final class AppActions implements ActionComponent {
             }
 
         } catch (IOException e) {
-            String errSaveTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_TITLE.name());
-            String errSaveMsg = applicationTemplate.manager.getPropertyValue(PropertyTypes.SAVE_ERROR_MSG.name());
-            String errSaveMsgCont = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_FILE_LABEL.name());
+            String errSaveTitle = applicationTemplate.manager.getPropertyValue(SAVE_ERROR_TITLE.name());
+            String errSaveMsg = applicationTemplate.manager.getPropertyValue(SAVE_ERROR_MSG.name());
+            String errSaveMsgCont = applicationTemplate.manager.getPropertyValue(DATA_FILE_LABEL.name());
             ErrorDialog errorDialog = ErrorDialog.getDialog();
             errorDialog.show(errSaveTitle, errSaveMsg + errSaveMsgCont);
         }
@@ -106,10 +109,11 @@ public final class AppActions implements ActionComponent {
             uiComponent.clearChart();
             dataComponent.clear();
             FileChooser fileChooser = new FileChooser();
-            // FIXME: Not Generic
-            FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Tab-Separated Data File (.*.tsd)", "*.tsd");
+            String tsdFullName = applicationTemplate.manager.getPropertyValue(TSD_FULL_NAME.name());
+            String tsdExt = applicationTemplate.manager.getPropertyValue(TSD_EXT.name());
+            FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter(tsdFullName, tsdExt);
             fileChooser.getExtensionFilters().add(extensionFilter);
-            String dataDirPath = separator + applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_RESOURCE_PATH.name());
+            String dataDirPath = separator + applicationTemplate.manager.getPropertyValue(DATA_RESOURCE_PATH.name());
             URL dataDirURL = getClass().getResource(dataDirPath);
             fileChooser.setInitialDirectory(new File(dataDirURL.getFile()));
             File selected = fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
@@ -129,11 +133,12 @@ public final class AppActions implements ActionComponent {
                 uiComponent.hideToggles();
                 uiComponent.showAlgorithmTypes();
                 uiComponent.chosenListHandler();
+                uiComponent.radioButtonHandler();
             }
         } catch (Exception e) {
-            String errLoadTitle = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_TITLE.name());
-            String errLoadMsg = applicationTemplate.manager.getPropertyValue(PropertyTypes.LOAD_ERROR_MSG.name());
-            String errLoadMsgCont = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_FILE_LABEL.name());
+            String errLoadTitle = applicationTemplate.manager.getPropertyValue(LOAD_ERROR_TITLE.name());
+            String errLoadMsg = applicationTemplate.manager.getPropertyValue(LOAD_ERROR_MSG.name());
+            String errLoadMsgCont = applicationTemplate.manager.getPropertyValue(DATA_FILE_LABEL.name());
             ErrorDialog errorDialog = ErrorDialog.getDialog();
             errorDialog.show(errLoadTitle, errLoadMsg + errLoadMsgCont);
         }
@@ -160,14 +165,14 @@ public final class AppActions implements ActionComponent {
 
         // setting up filechooser to select location for saved image
         FileChooser fileChooser = new FileChooser();
-        String      dataDirPath = separator + applicationTemplate.manager.getPropertyValue(AppPropertyTypes.DATA_RESOURCE_PATH.name());
+        String      dataDirPath = separator + applicationTemplate.manager.getPropertyValue(DATA_RESOURCE_PATH.name());
         URL         dataDirURL  = getClass().getResource(dataDirPath);
         fileChooser.setInitialDirectory(new File(dataDirURL.getFile()));
         fileChooser.setTitle(applicationTemplate.manager.getPropertyValue(SAVE_WORK_TITLE.name()));
         File location = fileChooser.showSaveDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
 
         try {
-            String ext = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.PNG_EXT.name());
+            String ext = applicationTemplate.manager.getPropertyValue(PNG_EXT.name());
             if (bufferedImage != null && location != null)
                 ImageIO.write(bufferedImage, ext, location);
 
@@ -191,25 +196,25 @@ public final class AppActions implements ActionComponent {
     private boolean promptToSave() throws IOException {
         PropertyManager    manager = applicationTemplate.manager;
         ConfirmationDialog dialog  = ConfirmationDialog.getDialog();
-        dialog.show(manager.getPropertyValue(AppPropertyTypes.SAVE_UNSAVED_WORK_TITLE.name()),
-                    manager.getPropertyValue(AppPropertyTypes.SAVE_UNSAVED_WORK.name()));
+        dialog.show(manager.getPropertyValue(SAVE_UNSAVED_WORK_TITLE.name()),
+                    manager.getPropertyValue(SAVE_UNSAVED_WORK.name()));
 
         if (dialog.getSelectedOption() == null) return false; // if user closes dialog using the window's close button
 
         if (dialog.getSelectedOption().equals(ConfirmationDialog.Option.YES)) {
             if (dataFilePath == null) {
                 FileChooser fileChooser = new FileChooser();
-                String      dataDirPath = separator + manager.getPropertyValue(AppPropertyTypes.DATA_RESOURCE_PATH.name());
+                String      dataDirPath = separator + manager.getPropertyValue(DATA_RESOURCE_PATH.name());
                 URL         dataDirURL  = getClass().getResource(dataDirPath);
 
                 if (dataDirURL == null)
-                    throw new FileNotFoundException(manager.getPropertyValue(AppPropertyTypes.RESOURCE_SUBDIR_NOT_FOUND.name()));
+                    throw new FileNotFoundException(manager.getPropertyValue(RESOURCE_SUBDIR_NOT_FOUND.name()));
 
                 fileChooser.setInitialDirectory(new File(dataDirURL.getFile()));
                 fileChooser.setTitle(manager.getPropertyValue(SAVE_WORK_TITLE.name()));
 
-                String description = manager.getPropertyValue(AppPropertyTypes.DATA_FILE_EXT_DESC.name());
-                String extension   = manager.getPropertyValue(AppPropertyTypes.DATA_FILE_EXT.name());
+                String description = manager.getPropertyValue(DATA_FILE_EXT_DESC.name());
+                String extension   = manager.getPropertyValue(DATA_FILE_EXT.name());
                 ExtensionFilter extFilter = new ExtensionFilter(String.format("%s (.*%s)", description, extension),
                                                                 String.format("*.%s", extension));
 
@@ -238,9 +243,9 @@ public final class AppActions implements ActionComponent {
     private void errorHandlingHelper() {
         ErrorDialog     dialog   = (ErrorDialog) applicationTemplate.getDialog(Dialog.DialogType.ERROR);
         PropertyManager manager  = applicationTemplate.manager;
-        String          errTitle = manager.getPropertyValue(PropertyTypes.SAVE_ERROR_TITLE.name());
-        String          errMsg   = manager.getPropertyValue(PropertyTypes.SAVE_ERROR_MSG.name());
-        String          errInput = manager.getPropertyValue(AppPropertyTypes.SPECIFIED_FILE.name());
+        String          errTitle = manager.getPropertyValue(SAVE_ERROR_TITLE.name());
+        String          errMsg   = manager.getPropertyValue(SAVE_ERROR_MSG.name());
+        String          errInput = manager.getPropertyValue(SPECIFIED_FILE.name());
         dialog.show(errTitle, errMsg + errInput);
     }
 

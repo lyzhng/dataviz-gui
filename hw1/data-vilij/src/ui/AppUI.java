@@ -2,6 +2,8 @@ package ui;
 
 import actions.AppActions;
 import dataprocessors.AppData;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -24,6 +26,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static java.io.File.separator;
+import static settings.AppPropertyTypes.*;
 import static vilij.settings.PropertyTypes.GUI_RESOURCE_PATH;
 import static vilij.settings.PropertyTypes.ICONS_RESOURCE_PATH;
 
@@ -35,8 +38,10 @@ import static vilij.settings.PropertyTypes.ICONS_RESOURCE_PATH;
 public final class AppUI extends UITemplate {
 
     /** The application to which this class of actions belongs. */
+
     ApplicationTemplate applicationTemplate;
-    ConfigurationWindow configurationWindow = new ConfigurationWindow();
+    ConfigurationWindow classificationWindow;
+    ConfigurationWindow clusteringWindow;
 
     @SuppressWarnings("FieldCanBeLocal")
     private Button scrnshotButton; // toolbar button to take a screenshot of the data
@@ -50,14 +55,17 @@ public final class AppUI extends UITemplate {
     private VBox vbox = new VBox();
     private RadioButton classificationAlg = new RadioButton();
     private RadioButton clusteringAlg = new RadioButton();
-    private Button runButton = new Button("Run");
+    private Button runButton = new Button();
     private boolean selectedClusteringAlg = false;
+    private boolean selectedClassificationAlg = false;
 
     public LineChart<Number, Number> getChart() { return chart; }
 
     public AppUI(Stage primaryStage, ApplicationTemplate applicationTemplate) {
         super(primaryStage, applicationTemplate);
         this.applicationTemplate = applicationTemplate;
+        classificationWindow = new ConfigurationWindow(applicationTemplate);
+        clusteringWindow = new ConfigurationWindow(applicationTemplate);
     }
 
     @Override
@@ -74,9 +82,9 @@ public final class AppUI extends UITemplate {
                                                    manager.getPropertyValue(ICONS_RESOURCE_PATH.name()));
         String scrnshoticonPath = String.join(SEPARATOR,
                                               iconsPath,
-                                              manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_ICON.name()));
+                                              manager.getPropertyValue(SCREENSHOT_ICON.name()));
         scrnshotButton = setToolbarButton(scrnshoticonPath,
-                                          manager.getPropertyValue(AppPropertyTypes.SCREENSHOT_TOOLTIP.name()),
+                                          manager.getPropertyValue(SCREENSHOT_TOOLTIP.name()),
                                           true);
         toolBar.getItems().add(scrnshotButton);
     }
@@ -93,17 +101,18 @@ public final class AppUI extends UITemplate {
     }
 
     protected void setToggleHandler() {
+        PropertyManager manager = applicationTemplate.manager;
         AppData dataComponent = ((AppData) applicationTemplate.getDataComponent());
         toggle.setOnAction(e -> {
-            if (textArea.getText().isEmpty())
+            if (textArea.getText().isEmpty()) {
                 return;
-            else if (toggle.getText().equals("Done") && !textArea.getText().isEmpty()) {
+            }
+            else if (toggle.getText().equals(manager.getPropertyValue(DONE.name())) && !textArea.getText().isEmpty()) {
                 clearChart();
-                // hide radio buttons here FIXME
                 applicationTemplate.getDataComponent().clear();
                 // loading, updating, displaying
                 dataComponent.loadData(textArea.getText());
-                statsText.setText(String.format("%d instance(s) with %d label(s). The label(s) are: \n%s", dataComponent.getProcessor().getLineNumber().get()-1, dataComponent.getNumberOfLabels(), dataComponent.getLabelNames()));
+                statsText.setText(String.format("%d instance(s) with %d label(s). The label(s) are:\n%s", dataComponent.getProcessor().getLineNumber().get()-1, dataComponent.getNumberOfLabels(), dataComponent.getLabelNames()));
                 dataComponent.displayData();
                 // show or hide statistics and algorithm types
                 if (!dataComponent.hadAnError().get())
@@ -117,12 +126,13 @@ public final class AppUI extends UITemplate {
                 radioButtonHandler();
 
                 textArea.setDisable(true);
-                toggle.setText("Edit");
+                // textArea.lookup(".scroll-bar:vertical").setDisable(false);
+                toggle.setText(manager.getPropertyValue(EDIT.name()));
             }
 
-            else if (toggle.getText().equals("Edit")) {
+            else if (toggle.getText().equals(manager.getPropertyValue(EDIT.name()))) {
                 textArea.setDisable(false);
-                toggle.setText("Done");
+                toggle.setText(manager.getPropertyValue(DONE.name()));
                 algorithmSel.getSelectionModel().clearSelection();
                 vbox.getChildren().get(0).setManaged(false);
                 vbox.getChildren().get(0).setVisible(false);
@@ -132,6 +142,8 @@ public final class AppUI extends UITemplate {
                 classificationAlg.setSelected(false);
                 clusteringAlg.setSelected(false);
                 selectedClusteringAlg = false;
+                selectedClassificationAlg = false;
+                hideAlgorithmTypes();
             }
         });
     }
@@ -149,6 +161,7 @@ public final class AppUI extends UITemplate {
 
     @Override
     public void clear() {
+        textArea.getStylesheets().clear();
         textArea.clear();
         clearChart();
         resetToggleText();
@@ -163,6 +176,7 @@ public final class AppUI extends UITemplate {
         classificationAlg.setSelected(false);
         clusteringAlg.setSelected(false);
         selectedClusteringAlg = false;
+        selectedClassificationAlg = false;
     }
 
     public void hideRunButton() {
@@ -177,15 +191,14 @@ public final class AppUI extends UITemplate {
 
     private void layout() {
         PropertyManager manager = applicationTemplate.manager;
-        AppActions actionComponent = ((AppActions) applicationTemplate.getActionComponent());
         NumberAxis      xAxis   = new NumberAxis();
         NumberAxis      yAxis   = new NumberAxis();
         chart = new LineChart<>(xAxis, yAxis);
 
+        chart.getStylesheets().add(getClass().getResource(manager.getPropertyValue(CHART_CSS.name())).toExternalForm());
         // external spreadsheet to chart_style.css
-        chart.getStylesheets().add(getClass().getResource(manager.getPropertyValue(AppPropertyTypes.CSS_FILE_NAME.name())).toExternalForm());
 
-        chart.setTitle(manager.getPropertyValue(AppPropertyTypes.CHART_TITLE.name()));
+        chart.setTitle(manager.getPropertyValue(CHART_TITLE.name()));
         chart.setHorizontalGridLinesVisible(false);
         chart.setVerticalGridLinesVisible(false);
 
@@ -197,9 +210,9 @@ public final class AppUI extends UITemplate {
         leftPanel.setMaxSize(windowWidth * 0.29, windowHeight * 0.3);
         leftPanel.setMinSize(windowWidth * 0.29, windowHeight * 0.3);
 
-        Text   leftPanelTitle = new Text(manager.getPropertyValue(AppPropertyTypes.LEFT_PANE_TITLE.name()));
-        String fontname       = manager.getPropertyValue(AppPropertyTypes.LEFT_PANE_TITLEFONT.name());
-        Double fontsize       = Double.parseDouble(manager.getPropertyValue(AppPropertyTypes.LEFT_PANE_TITLESIZE.name()));
+        Text   leftPanelTitle = new Text(manager.getPropertyValue(LEFT_PANE_TITLE.name()));
+        String fontname       = manager.getPropertyValue(LEFT_PANE_TITLEFONT.name());
+        Double fontsize       = Double.parseDouble(manager.getPropertyValue(LEFT_PANE_TITLESIZE.name()));
         leftPanelTitle.setFont(Font.font(fontname, fontsize));
 
         textArea = new TextArea();
@@ -218,13 +231,14 @@ public final class AppUI extends UITemplate {
         leftPanel.getChildren().addAll(leftPanelTitle, textArea, toggle, statsText, algorithmSel);
 
         HBox hbox = new HBox();
-        hbox.getChildren().addAll(classificationAlg, new Button("Config"));
+        hbox.getChildren().addAll(classificationAlg, new Button(manager.getPropertyValue(CONFIGURATION.name())));
         vbox.getChildren().add(hbox);
         hbox = new HBox();
-        hbox.getChildren().addAll(clusteringAlg, new Button("Config"));
+        hbox.getChildren().addAll(clusteringAlg, new Button(manager.getPropertyValue(CONFIGURATION.name())));
         vbox.getChildren().add(hbox);
         leftPanel.getChildren().add(vbox);
 
+        runButton.setText(manager.getPropertyValue(RUN.name()));
         leftPanel.getChildren().add(runButton);
         runButton.setVisible(false);
         runButton.setManaged(false);
@@ -241,8 +255,9 @@ public final class AppUI extends UITemplate {
     }
 
     private void algorithmSelInit() {
-        algorithmSel.getItems().addAll("Classification", "Clustering");
-        algorithmSel.setPromptText("Algorithm Type");
+        algorithmSel.getItems().add(applicationTemplate.manager.getPropertyValue(CLASSIFICATION.name()));
+        algorithmSel.getItems().add(applicationTemplate.manager.getPropertyValue(CLUSTERING.name()));
+        algorithmSel.setPromptText(applicationTemplate.manager.getPropertyValue(ALGORITHM_TYPE.name()));
     }
 
     private void setWorkspaceActions() {
@@ -254,8 +269,8 @@ public final class AppUI extends UITemplate {
 
     private void algorithmListInit() {
         ToggleGroup group = new ToggleGroup();
-        classificationAlg.setText("Random Classification");
-        clusteringAlg.setText("Random Clustering");
+        classificationAlg.setText(applicationTemplate.manager.getPropertyValue(RANDOM_CLASSIFICATION.name()));
+        clusteringAlg.setText(applicationTemplate.manager.getPropertyValue(RANDOM_CLUSTERING.name()));
         classificationAlg.setToggleGroup(group);
         clusteringAlg.setToggleGroup(group);
         hideAlgorithmLists();
@@ -318,7 +333,7 @@ public final class AppUI extends UITemplate {
     public Button getSaveButton() { return saveButton; }
     public TextArea getTextArea() { return textArea; }
     public void clearChart() { chart.getData().clear(); }
-    private void resetToggleText() { toggle.setText("Done"); }
+    private void resetToggleText() { toggle.setText(applicationTemplate.manager.getPropertyValue(DONE.name())); }
     public String getCurrentText() { return textArea.getText(); }
 
     public void hideStats() {
@@ -371,23 +386,25 @@ public final class AppUI extends UITemplate {
         if (dataComponent.getNumberOfLabels() != 2 && getAlgorithmSel().getItems().size() == 2)
             getAlgorithmSel().getItems().remove(0);
         if (dataComponent.getNumberOfLabels() == 2 && getAlgorithmSel().getItems().size() != 2) // only showing clustering
-            getAlgorithmSel().getItems().add(0, "Classification");
+            getAlgorithmSel().getItems().add(0, applicationTemplate.manager.getPropertyValue(CLASSIFICATION.name()));
     }
 
     // combo box as a whole
     public void chosenListHandler() {
+
         /* if there is a selected item, it will hide the ComboBox and show the respective algorithm's name */
-        getAlgorithmSel().getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (getAlgorithmSel().getSelectionModel().getSelectedItem() != null) {
+        algorithmSel.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (algorithmSel.getSelectionModel().getSelectedItem() != null) {
                 vbox.setVisible(true);
                 vbox.setManaged(true);
-                if (getAlgorithmSel().getSelectionModel().getSelectedItem().equalsIgnoreCase("Classification")) {
+                if (getAlgorithmSel().getSelectionModel().getSelectedItem().equalsIgnoreCase(applicationTemplate.manager.getPropertyValue(CLASSIFICATION.name()))) {
                     vbox.getChildren().get(0).setVisible(true);
                     vbox.getChildren().get(0).setManaged(true);
                     vbox.getChildren().get(1).setVisible(false);
                     vbox.getChildren().get(1).setManaged(false);
+                    selectedClassificationAlg = true;
                 }
-                if (getAlgorithmSel().getSelectionModel().getSelectedItem().equalsIgnoreCase("Clustering")) {
+                if (algorithmSel.getSelectionModel().getSelectedItem().equalsIgnoreCase(applicationTemplate.manager.getPropertyValue(CLUSTERING.name()))) {
                     vbox.getChildren().get(0).setVisible(false);
                     vbox.getChildren().get(0).setManaged(false);
                     vbox.getChildren().get(1).setVisible(true);
@@ -403,79 +420,29 @@ public final class AppUI extends UITemplate {
         classificationAlg.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (classificationAlg.isSelected()) {
                 showRunButton();
+                runButton.setDisable(true);
             }
         });
         clusteringAlg.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (clusteringAlg.isSelected()) {
                 showRunButton();
+                runButton.setDisable(true);
             }
         });
-    }
-
-    public void showRuntimeConfigWindow() {
-        Stage configWindow = new Stage();
-        configWindow.setTitle("Algorithm Run Configuration");
-
-        VBox vBox = new VBox(15);
-        HBox hBox = new HBox(10);
-        TextField iterField = new TextField();
-        TextField intervalField = new TextField();
-        CheckBox checkBox = new CheckBox();
-
-        hBox.getChildren().addAll(new Label("Max Iterations"), iterField);
-        hBox.setMaxWidth(300);
-        vBox.getChildren().add(hBox);
-
-        hBox = new HBox(10);
-        hBox.getChildren().addAll(new Label("Update Interval"), intervalField);
-        hBox.setMaxWidth(300);
-        vBox.getChildren().add(hBox);
-
-        if (selectedClusteringAlg) {
-            hBox = new HBox(10);
-            hBox.getChildren().addAll(new Label("Number of Labels"));
-            hBox.setMaxWidth(300);
-            vBox.getChildren().add(hBox);
-        }
-
-        hBox = new HBox(10);
-        hBox.getChildren().addAll(new Label("Continuous Run?"), checkBox);
-        hBox.setMaxWidth(300);
-        vBox.getChildren().add(hBox);
-
-        Button okButton = new Button("OK");
-        vBox.getChildren().add(okButton);
-
-        BorderPane pane = new BorderPane();
-        vBox.setAlignment(Pos.CENTER);
-        pane.setCenter(vBox);
-
-        configWindow.setScene(new Scene(pane, 350, 200));
-        configWindow.show();
-
-        okButton.setOnAction(event -> {
-            boolean valid = iterField.getText().matches("\\d+") &&
-                    Integer.parseInt(iterField.getText()) >= 0 &&
-                    intervalField.getText().matches("\\d+") &&
-                    Integer.parseInt(intervalField.getText()) >= 0;
-            if (valid) {
-                // save the data; clustering, classification fields,
-                // set boolean to true
-                // once boolean is set to true, have a listener for the run button
-            } else {
-
-            }
-            configWindow.close();
-        });
-
     }
 
     public void configButtonHandler() {
-        ((Button) ((HBox) vbox.getChildren().get(0)).getChildren().get(1)).setOnAction(event -> showRuntimeConfigWindow());
-        ((Button) ((HBox) vbox.getChildren().get(1)).getChildren().get(1)).setOnAction(event -> showRuntimeConfigWindow());
+        ((Button) ((HBox) vbox.getChildren().get(0)).getChildren().get(1)).setOnAction(event -> {
+            classificationWindow.init();
+        });
+        ((Button) ((HBox) vbox.getChildren().get(1)).getChildren().get(1)).setOnAction(event -> {
+            clusteringWindow.init();
+        });
     }
 
     public boolean isSelectedClusteringAlg() { return selectedClusteringAlg; }
 
+    public boolean isSelectedClassificationAlg() { return selectedClassificationAlg; }
 
+    public Button getRunButton() { return runButton; }
 }
