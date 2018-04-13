@@ -165,6 +165,7 @@ public final class AppUI extends UITemplate {
         textArea.clear();
         clearChart();
         resetToggleText();
+        enableTextArea();
         hideTextArea();
         hideStats();
         hideAlgorithmTypes();
@@ -239,6 +240,7 @@ public final class AppUI extends UITemplate {
         leftPanel.getChildren().add(vbox);
 
         runButton.setText(manager.getPropertyValue(RUN.name()));
+        runButton.setTooltip(new Tooltip(manager.getPropertyValue(RUN.name())));
         leftPanel.getChildren().add(runButton);
         runButton.setVisible(false);
         runButton.setManaged(false);

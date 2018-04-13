@@ -37,7 +37,7 @@ functionality within the main workspace. -->
         <property name="DISPLAY_BUTTON_TEXT" value="Display Data"/>
 
         <property name="DISPLAY_LABEL" value="Display"/>
-        <property name="DATA_FILE_LABEL" value="Data File"/>
+        <property name="DATA_FILE_LABEL" value="data file"/>
         <property name="CHART_TITLE" value="Data Visualization"/>
         <property name="INITIAL_FILE_NAME" value="Untitled.tsd"/>
         <property name="SEPARATOR" value="/"/>
@@ -72,7 +72,7 @@ functionality within the main workspace. -->
         <property name="CONFIG_WINDOW_TITLE" value="Algorithm Run Configuration" />
         <property name="AVG" value="AVG" />
         <property name="CONFIG_ERROR_TITLE" value="User Inputs Cannot Be Applied" />
-        <property name="CONFIG_ERROR_MESSAGE" value="Preferences have incorrect inputs. Please follow the prompt text. For now, invalid data inputs will be rounded to the closest valid values." />
+        <property name="CONFIG_ERROR_MESSAGE" value="There are either no inputs or incorrect inputs. Please follow the prompt text. For now, invalid data inputs will be rounded to the closest valid values." />
         <property name="DEFAULT_VALUE" value="1" />
         <property name="EMPTY_STRING" value="" />
         <property name="STATS_WITHOUT_PATH" value="%d instance(s) with %d label(s). The label(s) are:&#10;%s" />
@@ -83,6 +83,7 @@ functionality within the main workspace. -->
         <property name="AVG_SERIES_STROKE_WIDTH" value="-fx-stroke-width: 4px;" />
         <property name="CHART_LINE_SYMBOL" value=".chart-line-symbol" />
         <property name="AVG_SERIES_BG_COLOR" value="-fx-background-color: transparent;" />
+        <property name="AVG_SERIES_NORM" value="avg-series" />
     </property_list>
     <property_options_list/>
 </properties>

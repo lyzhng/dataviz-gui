@@ -182,8 +182,8 @@ public class ConfigurationWindow extends Stage
                         int num = (int) (Math.floor(Integer.parseInt(numClustersField.getText())));
                         if (num == 0) num = 1;
                         numClustersField.setText(String.valueOf(num));
-                        hasClickedClustering = true;
                     }
+                    hasClickedClustering = true;
                 }
                 else if (uiComponent.isSelectedClassificationAlg()) {
                     hasClickedClassification = true;

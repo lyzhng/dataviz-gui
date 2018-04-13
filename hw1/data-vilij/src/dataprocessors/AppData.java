@@ -143,11 +143,18 @@ public class AppData implements DataComponent {
             if (!(node.lookup(avgSeries) == node))
                 node.setStyle(nullStroke);
         });
+
+        /*
+       chart.lookupAll(".chart-series-line").forEach(node -> {
+            if (!(node.lookup("#avg-series") == node))
+                node.setStyle("-fx-stroke:null;");
+        });
+         */
         ((AppUI) applicationTemplate.getUIComponent()).setTooltips();
 
     }
 
-    private int checkForDuplicates(String tsdString)
+    public int checkForDuplicates(String tsdString)
     {
         List<String> names = new ArrayList<>();
         Stream.of(tsdString.split("\n")).map(line -> Arrays.asList(line.split("\t"))).forEach(list -> {
@@ -225,19 +232,19 @@ public class AppData implements DataComponent {
             series.getData().add(new XYChart.Data<>(minPoint.getX(), minPoint.getY()));
             series.getData().add(new XYChart.Data<>(maxPoint.getX(), maxPoint.getY()));
             chart.getData().add(series);
+            String avgSeriesNorm = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_NORM.name());
             String chartSeriesLine = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_SERIES_LINE.name());
-            String avgSeries = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES.name());
             String strokeWidth = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_STROKE_WIDTH.name());
             String chartLineSymbol = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_LINE_SYMBOL.name());
             String bgColor = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_BG_COLOR.name());
-            series.getNode().setId(avgSeries);
+            series.getNode().setId(avgSeriesNorm);
             series.setName(applicationTemplate.manager.getPropertyValue(AVG.name()));
 
             series.getNode().lookup(chartSeriesLine).setStyle(strokeWidth);
 
             series.getData().forEach(data ->
-                    data.getNode().lookup(chartLineSymbol)
-                            .setStyle(bgColor));
+                    data.getNode().lookup(chartLineSymbol).setStyle(bgColor));
+
 
         }
     }
