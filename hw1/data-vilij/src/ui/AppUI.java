@@ -112,7 +112,8 @@ public final class AppUI extends UITemplate {
                 applicationTemplate.getDataComponent().clear();
                 // loading, updating, displaying
                 dataComponent.loadData(textArea.getText());
-                statsText.setText(String.format("%d instance(s) with %d label(s). The label(s) are:\n%s", dataComponent.getProcessor().getLineNumber().get()-1, dataComponent.getNumberOfLabels(), dataComponent.getLabelNames()));
+                String statsWithoutPath = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.STATS_WITHOUT_PATH.name());
+                statsText.setText(String.format(statsWithoutPath, dataComponent.getProcessor().getLineNumber().get()-1, dataComponent.getNumberOfLabels(), dataComponent.getLabelNames()));
                 dataComponent.displayData();
                 // show or hide statistics and algorithm types
                 if (!dataComponent.hadAnError().get())
@@ -126,7 +127,6 @@ public final class AppUI extends UITemplate {
                 radioButtonHandler();
 
                 textArea.setDisable(true);
-                // textArea.lookup(".scroll-bar:vertical").setDisable(false);
                 toggle.setText(manager.getPropertyValue(EDIT.name()));
             }
 

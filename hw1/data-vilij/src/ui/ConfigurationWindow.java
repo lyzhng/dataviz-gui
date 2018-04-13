@@ -1,5 +1,7 @@
 package ui;
 
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -11,7 +13,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import settings.AppPropertyTypes;
+import vilij.components.ErrorDialog;
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 
@@ -47,7 +51,7 @@ public class ConfigurationWindow extends Stage
         setWorkspaceActions();
     }
 
-    public void layout() {
+    private void layout() {
         PropertyManager manager = applicationTemplate.manager;
         window.setTitle(manager.getPropertyValue(CONFIG_WINDOW_TITLE.name()));
 
@@ -92,6 +96,7 @@ public class ConfigurationWindow extends Stage
 
     private void setWorkspaceActions() {
         setOKButtonActions();
+        setXActions();
     }
 
     private void setOKButtonActions() {
@@ -100,26 +105,16 @@ public class ConfigurationWindow extends Stage
             // case for CLASSIFICATION
             boolean validForClassification =
                     iterField.getText().matches("\\d+") &&
-                    Integer.parseInt(iterField.getText()) >= 0 &&
+                    Integer.parseInt(iterField.getText()) > 0 &&
                     intervalField.getText().matches("\\d+") &&
-                    Integer.parseInt(intervalField.getText()) >= 0;
+                    Integer.parseInt(intervalField.getText()) > 0;
             // case for CLUSTERING
             boolean validForClustering =
                     validForClassification &&
                     numClustersField.getText().matches("\\d+") &&
-                    Integer.parseInt(numClustersField.getText()) >= 0;
+                    Integer.parseInt(numClustersField.getText()) > 0;
 
-            if (validForClassification && uiComponent.isSelectedClassificationAlg() && hasClickedClassification) {
-                // load the same settings from classificationPref
-                if (!classificationPref.isEmpty()) {
-                    iterField.setText((String) classificationPref.get(0));
-                    intervalField.setText((String) classificationPref.get(1));
-                    checkBox.setSelected((boolean) classificationPref.get(2));
-                }
-                classificationPref.clear();
-                uiComponent.getRunButton().setDisable(false);
-            }
-            else if (validForClustering && uiComponent.isSelectedClusteringAlg() && hasClickedClustering) {
+            if (validForClustering && uiComponent.isSelectedClusteringAlg() && hasClickedClustering) {
                 // load the same settings from clusteringPref
                 if (!clusteringPref.isEmpty()) {
                     iterField.setText((String) clusteringPref.get(0));
@@ -130,6 +125,16 @@ public class ConfigurationWindow extends Stage
                 clusteringPref.clear();
                 uiComponent.getRunButton().setDisable(false);
                 // what to do with list?
+            }
+            else if (validForClassification && uiComponent.isSelectedClassificationAlg() && hasClickedClassification) {
+                // load the same settings from classificationPref
+                if (!classificationPref.isEmpty()) {
+                    iterField.setText((String) classificationPref.get(0));
+                    intervalField.setText((String) classificationPref.get(1));
+                    checkBox.setSelected((boolean) classificationPref.get(2));
+                }
+                classificationPref.clear();
+                uiComponent.getRunButton().setDisable(false);
             }
             else if (validForClassification && uiComponent.isSelectedClassificationAlg()) {
                 classificationPref.add(iterField.getText());
@@ -147,23 +152,48 @@ public class ConfigurationWindow extends Stage
                 uiComponent.getRunButton().setDisable(false);
             }
             else {
-                // invalid input!
-                // general cases
-                iterField.setText("1");
-                intervalField.setText("1");
-                checkBox.setSelected(false);
+                window.hide();
+                ErrorDialog errorDialog = ErrorDialog.getDialog();
+                String configErrorTitle = applicationTemplate.manager.getPropertyValue(CONFIG_ERROR_TITLE.name());
+                String configErrorMsg = applicationTemplate.manager.getPropertyValue(CONFIG_ERROR_MESSAGE.name());
+                String defaultValue = applicationTemplate.manager.getPropertyValue(DEFAULT_VALUE.name());
+                errorDialog.show(configErrorTitle, configErrorMsg);
+                if (!iterField.getText().matches("\\d+")) {
+                    iterField.setText(defaultValue);
+                }
+                else if (iterField.getText().matches("\\d+") && Integer.parseInt(iterField.getText()) <= 0) {
+                    int num = (int) (Math.floor(Integer.parseInt(iterField.getText())));
+                    if (num == 0) num = 1;
+                    iterField.setText(String.valueOf(num));
+                }
+                if (!intervalField.getText().matches("\\d+")) {
+                    intervalField.setText(defaultValue);
+                }
+                else if (intervalField.getText().matches("\\d+") && Integer.parseInt(intervalField.getText()) <= 0) {
+                    int num = (int) (Math.floor(Integer.parseInt(intervalField.getText())));
+                    if (num == 0) num = 1;
+                    intervalField.setText(String.valueOf(num));
+                }
                 if (uiComponent.isSelectedClusteringAlg()) {
-                    numClustersField.setText("1");
-                    hasClickedClustering = true;
+                    if (!numClustersField.getText().matches("\\d+")) {
+                        numClustersField.setText(defaultValue);
+                    }
+                    else if (numClustersField.getText().matches("\\d+") && Integer.parseInt(numClustersField.getText()) <= 0) {
+                        int num = (int) (Math.floor(Integer.parseInt(numClustersField.getText())));
+                        if (num == 0) num = 1;
+                        numClustersField.setText(String.valueOf(num));
+                        hasClickedClustering = true;
+                    }
                 }
                 else if (uiComponent.isSelectedClassificationAlg()) {
                     hasClickedClassification = true;
                 }
             }
-            window.close();
+            window.hide();
         });
     }
 
-    private void clearClassificationPref() { classificationPref.clear(); }
-    private void clearClusteringPref() { clusteringPref.clear(); }
+    private void setXActions() {
+        window.setOnCloseRequest(Event::consume);
+    }
 }

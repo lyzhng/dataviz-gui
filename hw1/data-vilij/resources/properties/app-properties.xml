@@ -50,6 +50,7 @@ functionality within the main workspace. -->
         <property name="LOAD_WARNING_TITLE" value="Load Warning" />
         <property name="CHART_CSS" value="/css/chart_style.css"/>
         <property name="TEXTAREA_CSS" value="/css/textarea_style.css" />
+        <property name="DATA_FILE_EXT" value=".tsd" />
         <property name="MAX_ITERATIONS" value="Max Iterations" />
         <property name="UPDATE_INTERVAL" value="Update Interval" />
         <property name="CONTINUOUS_RUN" value="Continuous Run?" />
@@ -62,7 +63,7 @@ functionality within the main workspace. -->
         <property name="CLUSTERING" value="Clustering" />
         <property name="RANDOM_CLASSIFICATION" value="Random Classification" />
         <property name="RANDOM_CLUSTERING" value="Random Clustering" />
-        <property name="FIELD_PROMPT_TEXT" value="Enter an integer (i ≥ 0)" />
+        <property name="FIELD_PROMPT_TEXT" value="Enter an integer (i ≥ 1)" />
         <property name="EDIT" value="Edit" />
         <property name="DONE" value="Done" />
         <property name="TSD_FULL_NAME" value="Tab-Separated Data File (.*.tsd)" />
@@ -70,6 +71,18 @@ functionality within the main workspace. -->
         <property name="NULL" value="null" />
         <property name="CONFIG_WINDOW_TITLE" value="Algorithm Run Configuration" />
         <property name="AVG" value="AVG" />
+        <property name="CONFIG_ERROR_TITLE" value="User Inputs Cannot Be Applied" />
+        <property name="CONFIG_ERROR_MESSAGE" value="Preferences have incorrect inputs. Please follow the prompt text. For now, invalid data inputs will be rounded to the closest valid values." />
+        <property name="DEFAULT_VALUE" value="1" />
+        <property name="EMPTY_STRING" value="" />
+        <property name="STATS_WITHOUT_PATH" value="%d instance(s) with %d label(s). The label(s) are:&#10;%s" />
+        <property name="STATS_WITH_PATH" value="%d instance(s) with %d label(s) loaded from %s. The label(s) are:&#10;%s" />
+        <property name="CHART_SERIES_LINE" value=".chart-series-line" />
+        <property name="AVG_SERIES" value="#avg-series" />
+        <property name="NULL_STROKE" value="-fx-stroke:null" />
+        <property name="AVG_SERIES_STROKE_WIDTH" value="-fx-stroke-width: 4px;" />
+        <property name="CHART_LINE_SYMBOL" value=".chart-line-symbol" />
+        <property name="AVG_SERIES_BG_COLOR" value="-fx-background-color: transparent;" />
     </property_list>
     <property_options_list/>
 </properties>

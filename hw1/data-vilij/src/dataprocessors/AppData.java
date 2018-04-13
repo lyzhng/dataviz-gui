@@ -52,7 +52,7 @@ public class AppData implements DataComponent {
             textArea.clear();
             BufferedReader bufferedReader = new BufferedReader(new FileReader(dataFilePath.toFile()));
             String lineRead;
-            String lines = "";
+            String lines = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.EMPTY_STRING.name());
             while ((lineRead = bufferedReader.readLine()) != null) {
                 lines += lineRead + System.lineSeparator();
                 // lineCounter++;
@@ -73,9 +73,10 @@ public class AppData implements DataComponent {
             } */
             textArea.setText(lines);
             textArea.setEditable(false);
-            textArea.getStylesheets().add((getClass().getResource(TEXTAREA_CSS.name()).toExternalForm()));
+            textArea.getStylesheets().add((getClass().getResource(applicationTemplate.manager.getPropertyValue(TEXTAREA_CSS.name())).toExternalForm()));
             loadData(lines);
-            statsText.setText(String.format("%d instance(s) with %d label(s) loaded from %s. The label(s) are:\n%s", processor.getLineNumber().get()-1, getNumberOfLabels(), dataFilePath.toString(), getLabelNames()));
+            String statsWithPath = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.STATS_WITH_PATH.name());
+            statsText.setText(String.format(statsWithPath, processor.getLineNumber().get()-1, getNumberOfLabels(), dataFilePath.toString(), getLabelNames()));
 
             displayData();
         }
@@ -135,9 +136,12 @@ public class AppData implements DataComponent {
         LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
         processor.toChartData(chart);
         plotAvgY();
-        chart.lookupAll(".chart-series-line").forEach(node -> {
-            if (!(node.lookup("#avg-series") == node))
-                node.setStyle("-fx-stroke:null;");
+        String chartSeriesLine = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_SERIES_LINE.name());
+        String avgSeries = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES.name());
+        String nullStroke = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.NULL_STROKE.name());
+        chart.lookupAll(chartSeriesLine).forEach(node -> {
+            if (!(node.lookup(avgSeries) == node))
+                node.setStyle(nullStroke);
         });
         ((AppUI) applicationTemplate.getUIComponent()).setTooltips();
 
@@ -221,14 +225,19 @@ public class AppData implements DataComponent {
             series.getData().add(new XYChart.Data<>(minPoint.getX(), minPoint.getY()));
             series.getData().add(new XYChart.Data<>(maxPoint.getX(), maxPoint.getY()));
             chart.getData().add(series);
-            series.getNode().setId("avg-series");
+            String chartSeriesLine = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_SERIES_LINE.name());
+            String avgSeries = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES.name());
+            String strokeWidth = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_STROKE_WIDTH.name());
+            String chartLineSymbol = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_LINE_SYMBOL.name());
+            String bgColor = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_BG_COLOR.name());
+            series.getNode().setId(avgSeries);
             series.setName(applicationTemplate.manager.getPropertyValue(AVG.name()));
 
-            series.getNode().lookup(".chart-series-line").setStyle("-fx-stroke-width: 4px;");
+            series.getNode().lookup(chartSeriesLine).setStyle(strokeWidth);
 
             series.getData().forEach(data ->
-                    data.getNode().lookup(".chart-line-symbol")
-                            .setStyle("-fx-background-color: transparent;"));
+                    data.getNode().lookup(chartLineSymbol)
+                            .setStyle(bgColor));
 
         }
     }

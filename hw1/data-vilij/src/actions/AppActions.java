@@ -237,7 +237,6 @@ public final class AppActions implements ActionComponent {
     private void save() throws IOException {
         applicationTemplate.getDataComponent().saveData(dataFilePath);
         isUnsaved.set(false);
-
     }
 
     private void errorHandlingHelper() {
