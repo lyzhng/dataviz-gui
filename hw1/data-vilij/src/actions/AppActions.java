@@ -4,6 +4,7 @@ import dataprocessors.AppData;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.chart.LineChart;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.WritableImage;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -24,9 +25,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static java.io.File.separator;
 import static settings.AppPropertyTypes.*;
 import static vilij.settings.PropertyTypes.*;
 import static vilij.settings.PropertyTypes.SAVE_WORK_TITLE;
@@ -42,6 +44,7 @@ public final class AppActions implements ActionComponent {
     private ApplicationTemplate applicationTemplate;
 
     /** Path to the data file currently active. */
+    static final String SEPARATOR = "/";
     Path dataFilePath;
 
     /** The boolean property marking whether or not there are any unsaved changes. */
@@ -75,7 +78,22 @@ public final class AppActions implements ActionComponent {
     public void handleSaveRequest() {
         try {
             AtomicBoolean hadAnError = ((AppData) applicationTemplate.getDataComponent()).hadAnError();
-            if (isSaved() && !hadAnError.get()) {
+            applicationTemplate.getDataComponent().clear();
+            TextArea textArea = ((AppUI) applicationTemplate.getUIComponent()).getTextArea();
+            ((AppData) applicationTemplate.getDataComponent()).getProcessor().processString(textArea.getText());
+            int duplicate = ((AppData) applicationTemplate.getDataComponent()).checkForDuplicates(textArea.getText());
+            if (duplicate != -1) { // duplicate error
+                List<String> lines = Arrays.asList(textArea.getText().split(System.lineSeparator()));
+                String errLoadTitle = applicationTemplate.manager.getPropertyValue(LOAD_ERROR_TITLE.name());
+                String errDupMsg = applicationTemplate.manager.getPropertyValue(DUPLICATE_ERR_MSG.name());
+                String errDupCont = (duplicate+1) + System.lineSeparator() + lines.get(duplicate);
+                ErrorDialog errorDialog = ErrorDialog.getDialog();
+                errorDialog.show(errLoadTitle, errDupMsg + errDupCont);
+                ((AppUI) applicationTemplate.getUIComponent()).getSaveButton().setDisable(true);
+                hadAnError.set(true);
+                return;
+            }
+            else if (isSaved() && !hadAnError.get()) {
                 save();
             } else if (!isSaved() && !hadAnError.get()){
                 promptToSave();
@@ -83,7 +101,8 @@ public final class AppActions implements ActionComponent {
             } else {
                 String errSaveTitle = applicationTemplate.manager.getPropertyValue(SAVE_ERROR_TITLE.name());
                 String errSaveMsg = applicationTemplate.manager.getPropertyValue(SAVE_ERROR_MSG.name());
-                String errSaveMsgCont = applicationTemplate.manager.getPropertyValue(DATA_FILE_LABEL.name());
+                String errSaveMsgCont = applicationTemplate.manager.getPropertyValue(DATA_FILE_LABEL.name()) +
+                        "\n";
                 ErrorDialog errorDialog = ErrorDialog.getDialog();
                 errorDialog.show(errSaveTitle, errSaveMsg + errSaveMsgCont);
             }
@@ -98,6 +117,18 @@ public final class AppActions implements ActionComponent {
             String errSaveMsgCont = applicationTemplate.manager.getPropertyValue(DATA_FILE_LABEL.name());
             ErrorDialog errorDialog = ErrorDialog.getDialog();
             errorDialog.show(errSaveTitle, errSaveMsg + errSaveMsgCont);
+            ((AppData) applicationTemplate.getDataComponent()).hadAnError().set(true);
+        } catch (Exception e) { // format error
+            String errSaveTitle = applicationTemplate.manager.getPropertyValue(SAVE_ERROR_TITLE.name());
+            String errSaveMsg = applicationTemplate.manager.getPropertyValue(SAVE_ERROR_MSG.name());
+            String errLoadMsg =
+                    applicationTemplate.manager.getPropertyValue(INCORRECT_FORMAT.name()) +
+                            e.getMessage().substring(e.getMessage().indexOf("\n")+1);
+            String errSaveMsgCont = applicationTemplate.manager.getPropertyValue(DATA_FILE_LABEL.name()) + "\n" +
+                    errLoadMsg;
+            ErrorDialog errorDialog = ErrorDialog.getDialog();
+            errorDialog.show(errSaveTitle, errSaveMsg + errSaveMsgCont);
+            ((AppData) applicationTemplate.getDataComponent()).hadAnError().set(true);
         }
     }
 
@@ -113,7 +144,7 @@ public final class AppActions implements ActionComponent {
             String tsdExt = applicationTemplate.manager.getPropertyValue(TSD_EXT.name());
             FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter(tsdFullName, tsdExt);
             fileChooser.getExtensionFilters().add(extensionFilter);
-            String dataDirPath = separator + applicationTemplate.manager.getPropertyValue(DATA_RESOURCE_PATH.name());
+            String dataDirPath = SEPARATOR + applicationTemplate.manager.getPropertyValue(DATA_RESOURCE_PATH.name());
             URL dataDirURL = getClass().getResource(dataDirPath);
             fileChooser.setInitialDirectory(new File(dataDirURL.getFile()));
             File selected = fileChooser.showOpenDialog(applicationTemplate.getUIComponent().getPrimaryWindow());
@@ -165,7 +196,7 @@ public final class AppActions implements ActionComponent {
 
         // setting up filechooser to select location for saved image
         FileChooser fileChooser = new FileChooser();
-        String      dataDirPath = separator + applicationTemplate.manager.getPropertyValue(DATA_RESOURCE_PATH.name());
+        String      dataDirPath = SEPARATOR + applicationTemplate.manager.getPropertyValue(DATA_RESOURCE_PATH.name());
         URL         dataDirURL  = getClass().getResource(dataDirPath);
         fileChooser.setInitialDirectory(new File(dataDirURL.getFile()));
         fileChooser.setTitle(applicationTemplate.manager.getPropertyValue(SAVE_WORK_TITLE.name()));
@@ -202,9 +233,10 @@ public final class AppActions implements ActionComponent {
         if (dialog.getSelectedOption() == null) return false; // if user closes dialog using the window's close button
 
         if (dialog.getSelectedOption().equals(ConfirmationDialog.Option.YES)) {
+
             if (dataFilePath == null) {
                 FileChooser fileChooser = new FileChooser();
-                String      dataDirPath = separator + manager.getPropertyValue(DATA_RESOURCE_PATH.name());
+                String      dataDirPath = SEPARATOR + manager.getPropertyValue(DATA_RESOURCE_PATH.name());
                 URL         dataDirURL  = getClass().getResource(dataDirPath);
 
                 if (dataDirURL == null)

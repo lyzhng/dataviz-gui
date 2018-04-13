@@ -25,7 +25,6 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static java.io.File.separator;
 import static settings.AppPropertyTypes.*;
 import static vilij.settings.PropertyTypes.GUI_RESOURCE_PATH;
 import static vilij.settings.PropertyTypes.ICONS_RESOURCE_PATH;
