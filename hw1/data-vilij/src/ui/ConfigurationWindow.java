@@ -1,9 +1,7 @@
 package ui;
 
 import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -13,8 +11,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
-import settings.AppPropertyTypes;
 import vilij.components.ErrorDialog;
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
@@ -37,10 +33,8 @@ public class ConfigurationWindow extends Stage
     private TextField intervalField = new TextField();
     private TextField numClustersField = new TextField();
     private CheckBox checkBox = new CheckBox();
-    boolean hasClickedClassification = false;
-    boolean hasClickedClustering = false;
-    List<Object> classificationPref = new ArrayList<>();
-    List<Object> clusteringPref = new ArrayList<>();
+    private List<Object> classificationPref = new ArrayList<>();
+    private List<Object> clusteringPref = new ArrayList<>();
 
     public ConfigurationWindow(ApplicationTemplate applicationTemplate) {
         this.applicationTemplate = applicationTemplate;
@@ -114,41 +108,32 @@ public class ConfigurationWindow extends Stage
                     numClustersField.getText().matches("\\d+") &&
                     Integer.parseInt(numClustersField.getText()) > 0;
 
-            if (validForClustering && uiComponent.isSelectedClusteringAlg() && hasClickedClustering) {
+            if (validForClustering && uiComponent.isSelectedClusteringAlg()) {
                 // load the same settings from clusteringPref
+                clusteringPref.add(iterField.getText());
+                clusteringPref.add(intervalField.getText());
+                clusteringPref.add(numClustersField.getText());
+                clusteringPref.add(checkBox.isSelected());
                 if (!clusteringPref.isEmpty()) {
                     iterField.setText((String) clusteringPref.get(0));
                     intervalField.setText((String) clusteringPref.get(1));
                     numClustersField.setText((String) clusteringPref.get(2));
                     checkBox.setSelected((boolean) clusteringPref.get(3));
+                    clusteringPref.clear();
                 }
-                clusteringPref.clear();
                 uiComponent.getRunButton().setDisable(false);
-                // what to do with list?
             }
-            else if (validForClassification && uiComponent.isSelectedClassificationAlg() && hasClickedClassification) {
+            else if (validForClassification && uiComponent.isSelectedClassificationAlg()) {
                 // load the same settings from classificationPref
+                classificationPref.add(iterField.getText());
+                classificationPref.add(intervalField.getText());
+                classificationPref.add(checkBox.isSelected());
                 if (!classificationPref.isEmpty()) {
                     iterField.setText((String) classificationPref.get(0));
                     intervalField.setText((String) classificationPref.get(1));
                     checkBox.setSelected((boolean) classificationPref.get(2));
+                    classificationPref.clear();
                 }
-                classificationPref.clear();
-                uiComponent.getRunButton().setDisable(false);
-            }
-            else if (validForClassification && uiComponent.isSelectedClassificationAlg()) {
-                classificationPref.add(iterField.getText());
-                classificationPref.add(intervalField.getText());
-                classificationPref.add(checkBox.isSelected());
-                hasClickedClassification = true;
-                uiComponent.getRunButton().setDisable(false);
-            }
-            else if (validForClustering && uiComponent.isSelectedClusteringAlg()) {
-                clusteringPref.add(iterField.getText());
-                clusteringPref.add(intervalField.getText());
-                clusteringPref.add(numClustersField.getText());
-                clusteringPref.add(checkBox.isSelected());
-                hasClickedClustering = true;
                 uiComponent.getRunButton().setDisable(false);
             }
             else {
@@ -183,10 +168,6 @@ public class ConfigurationWindow extends Stage
                         if (num == 0) num = 1;
                         numClustersField.setText(String.valueOf(num));
                     }
-                    hasClickedClustering = true;
-                }
-                else if (uiComponent.isSelectedClassificationAlg()) {
-                    hasClickedClassification = true;
                 }
             }
             window.hide();

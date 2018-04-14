@@ -2,14 +2,11 @@ package ui;
 
 import actions.AppActions;
 import dataprocessors.AppData;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
-import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -21,8 +18,6 @@ import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
-import java.net.URL;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static settings.AppPropertyTypes.*;

@@ -50,7 +50,7 @@ functionality within the main workspace. -->
         <property name="LOAD_WARNING_TITLE" value="Load Warning" />
         <property name="CHART_CSS" value="/css/chart_style.css"/>
         <property name="TEXTAREA_CSS" value="/css/textarea_style.css" />
-        <property name="DATA_FILE_EXT" value=".tsd" />
+        <property name="DATA_FILE_EXT_NAME" value="tsd" />
         <property name="MAX_ITERATIONS" value="Max Iterations" />
         <property name="UPDATE_INTERVAL" value="Update Interval" />
         <property name="CONTINUOUS_RUN" value="Continuous Run?" />

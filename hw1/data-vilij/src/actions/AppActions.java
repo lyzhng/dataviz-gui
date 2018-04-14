@@ -246,7 +246,7 @@ public final class AppActions implements ActionComponent {
                 fileChooser.setTitle(manager.getPropertyValue(SAVE_WORK_TITLE.name()));
 
                 String description = manager.getPropertyValue(DATA_FILE_EXT_DESC.name());
-                String extension   = manager.getPropertyValue(DATA_FILE_EXT.name());
+                String extension   = manager.getPropertyValue(DATA_FILE_EXT_NAME.name());
                 ExtensionFilter extFilter = new ExtensionFilter(String.format("%s (.*%s)", description, extension),
                                                                 String.format("*.%s", extension));
 

@@ -28,7 +28,7 @@ public enum AppPropertyTypes {
     SAVE_UNSAVED_WORK,
 
     /* application-specific parameters */
-    DATA_FILE_EXT,
+    DATA_FILE_EXT_NAME,
     DATA_FILE_EXT_DESC,
     SPECIFIED_FILE,
     LEFT_PANE_TITLE,
