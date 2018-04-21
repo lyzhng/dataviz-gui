@@ -1,5 +1,7 @@
 package dataprocessors;
 
+import algorithms.DataSet;
+import algorithms.RandomClassifier;
 import javafx.geometry.Point2D;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
@@ -7,6 +9,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.text.Text;
 import settings.AppPropertyTypes;
 import ui.AppUI;
+import ui.ConfigurationWindow;
 import vilij.components.DataComponent;
 import vilij.components.ErrorDialog;
 import vilij.settings.PropertyTypes;
@@ -33,6 +36,7 @@ public class AppData implements DataComponent {
 
     private TSDProcessor        processor;
     private ApplicationTemplate applicationTemplate;
+    RandomClassifier randomClassifier;
 
 
     public AppData(ApplicationTemplate applicationTemplate) {
@@ -134,8 +138,8 @@ public class AppData implements DataComponent {
 
     public void displayData() {
         LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
+        chart.setAnimated(true);
         processor.toChartData(chart);
-        plotAvgY();
         String chartSeriesLine = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_SERIES_LINE.name());
         String avgSeries = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES.name());
         String nullStroke = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.NULL_STROKE.name());
@@ -204,7 +208,7 @@ public class AppData implements DataComponent {
 
     public LinkedHashMap<String, Point2D> getDataPoints() { return processor.getDataPoints(); }
 
-    private double findAvgY() {
+    /* private double findAvgY() {
         LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
         LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
         double yTotal = 0.0d;
@@ -214,18 +218,17 @@ public class AppData implements DataComponent {
             }
         }
         return yTotal/dataPoints.size();
-    }
+    } */
 
-    private void plotAvgY() {
+    /* private void plotAvgY() {
         LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
         LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
         List<Double> xValues = new ArrayList<>();
         dataPoints.values().forEach(value -> xValues.add(value.getX()));
         if (xValues.size() <= 1) return;
-        Collections.sort(xValues);
         if (!xValues.isEmpty()) {
-            Double xMin = xValues.get(0);
-            Double xMax = xValues.get(xValues.size() - 1);
+            Double xMin = Collections.min(xValues);
+            Double xMax = Collections.max(xValues);
             XYChart.Series<Number, Number> series = new XYChart.Series<>();
             Point2D minPoint = new Point2D(xMin, findAvgY());
             Point2D maxPoint = new Point2D(xMax, findAvgY());
@@ -247,7 +250,7 @@ public class AppData implements DataComponent {
 
 
         }
-    }
+    } */
 
     public AtomicBoolean hadAnError() { return processor.hadAnError; }
 
@@ -255,7 +258,6 @@ public class AppData implements DataComponent {
 
     public LinkedHashMap<String, String> getDataLabels() { return processor.getDataLabels(); }
 
-    // wrong
     public int getNumberOfLabels() {
         Set<String> labels = new LinkedHashSet<>(getDataLabels().values());
         labels.removeIf(s -> s.equalsIgnoreCase(applicationTemplate.manager.getPropertyValue(NULL.name())));
@@ -270,4 +272,19 @@ public class AppData implements DataComponent {
             stringBuilder.append("– ").append(label).append(System.lineSeparator());
         return stringBuilder.toString();
     }
+
+    public void setRunButtonAction() {
+        try {
+            AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
+            ConfigurationWindow configurationWindow = uiComponent.getClassificationWindow();
+            DataSet dataset = DataSet.fromTSDProcessor(uiComponent.getCurrentText());
+            this.randomClassifier = new RandomClassifier(dataset, applicationTemplate, configurationWindow.getMaxIter(), configurationWindow.getUpdateInterval(), configurationWindow.isContinuousRun());
+            new Thread(randomClassifier).start();
+        }
+        catch (NumberFormatException e) {
+            System.out.println("The values have not been set yet.");
+        }
+    }
+
+    public RandomClassifier getRandomClassifier() { return randomClassifier; }
 }

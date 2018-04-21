@@ -1,8 +1,11 @@
 package ui;
 
+import algorithms.*;
 import actions.AppActions;
 import dataprocessors.AppData;
 import javafx.collections.ListChangeListener;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -50,8 +53,8 @@ public final class AppUI extends UITemplate {
     private RadioButton classificationAlg = new RadioButton();
     private RadioButton clusteringAlg = new RadioButton();
     private Button runButton = new Button();
-    private boolean selectedClusteringAlg = false;
-    private boolean selectedClassificationAlg = false;
+    boolean selectedClusteringAlg = false;
+    boolean selectedClassificationAlg = false;
 
     public LineChart<Number, Number> getChart() { return chart; }
 
@@ -196,6 +199,8 @@ public final class AppUI extends UITemplate {
         chart.setTitle(manager.getPropertyValue(CHART_TITLE.name()));
         chart.setHorizontalGridLinesVisible(false);
         chart.setVerticalGridLinesVisible(false);
+        chart.setHorizontalZeroLineVisible(false);
+        chart.setVerticalZeroLineVisible(false);
 
         VBox leftPanel = new VBox(8);
         leftPanel.setAlignment(Pos.TOP_LEFT);
@@ -261,6 +266,12 @@ public final class AppUI extends UITemplate {
         toggleScrnshotButton();
         setToggleHandler();
         configButtonHandler();
+        setRunHandler();
+    }
+
+    public void setRunHandler() {
+        AppData dataComponent = ((AppData) applicationTemplate.getDataComponent());
+        runButton.setOnAction(event -> dataComponent.setRunButtonAction());
     }
 
     private void algorithmListInit() {
@@ -441,4 +452,8 @@ public final class AppUI extends UITemplate {
     public boolean isSelectedClassificationAlg() { return selectedClassificationAlg; }
 
     public Button getRunButton() { return runButton; }
+
+    public ConfigurationWindow getClassificationWindow() { return classificationWindow; }
+
+    public ConfigurationWindow getClusteringWindow() { return clusteringWindow; }
 }

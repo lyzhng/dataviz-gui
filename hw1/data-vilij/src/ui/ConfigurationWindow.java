@@ -25,7 +25,7 @@ import static settings.AppPropertyTypes.*;
  */
 public class ConfigurationWindow extends Stage
 {
-    ApplicationTemplate applicationTemplate; // issue here
+    ApplicationTemplate applicationTemplate;
 
     private Stage window = new Stage();
     private Button OKButton = new Button();
@@ -177,4 +177,9 @@ public class ConfigurationWindow extends Stage
     private void setXActions() {
         window.setOnCloseRequest(Event::consume);
     }
+
+    // ok is pressed. data validation is through.
+    public int getMaxIter() throws NumberFormatException { return Integer.parseInt(iterField.getText()); }
+    public int getUpdateInterval() throws NumberFormatException { return Integer.parseInt(intervalField.getText()); }
+    public boolean isContinuousRun() { return checkBox.isSelected(); }
 }

@@ -4,6 +4,7 @@ import dataprocessors.AppData;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.chart.LineChart;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.WritableImage;
 import javafx.stage.FileChooser;
