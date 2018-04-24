@@ -2,6 +2,7 @@ package algorithms;
 
 import dataprocessors.AppData;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ValueAxis;
 import javafx.scene.chart.XYChart;
@@ -12,7 +13,9 @@ import vilij.templates.ApplicationTemplate;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static settings.AppPropertyTypes.*;
 
@@ -31,6 +34,8 @@ public class RandomClassifier extends Classifier {
     private final int updateInterval;
     private static int currentIteration = 0;
     private static AtomicReference<XYChart.Series<Number, Number>> prevSeriesRef = new AtomicReference<>();
+    private static SimpleBooleanProperty isRunning = new SimpleBooleanProperty(false);
+    ReentrantLock lock = new ReentrantLock();
 
     // currently, this value does not change after instantiation
     private final AtomicBoolean tocontinue;
@@ -65,98 +70,112 @@ public class RandomClassifier extends Classifier {
     @Override
     public void run() {
         // case for continuous run
+        Platform.setImplicitExit(true);
         if (tocontinue())
             continuousrun();
         else
             manualrun();
     }
 
-    public void continuousrun() {
+    private void continuousrun() {
         try {
             AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
             AppData dataComponent = ((AppData) applicationTemplate.getDataComponent());
             uiComponent.getRunButton().setDisable(true);
             List<Double> xvalues = new ArrayList<>();
             dataComponent.getDataPoints().values().forEach(value -> xvalues.add(value.getX()));
-            for (int i = 1; i <= maxIterations && tocontinue(); i++) {
-                int xCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-                int yCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-                int constant = new Double(RAND.nextDouble() * 100).intValue();
-                // this is the real output of the classifier
-                output = Arrays.asList(xCoefficient, yCoefficient, constant);
+            double xmin = Collections.min(xvalues);
+            double xmax = Collections.max(xvalues);
+            for (int i = 1; i <= maxIterations && tocontinue(); i += 1) {
+                isRunning.set(true);
+                double yForXmin = getYValue(xmin);
+                double yForXmax = getYValue(xmax);
                 // everything below is just for internal viewing of how the output is changing
                 // in the final project, such changes will be dynamically visible in the UI
                 if (i % updateInterval == 0) {
                     System.out.printf("Iteration number %d: ", i);
                     flush();
-                }
-                if (i > maxIterations * .6 && RAND.nextDouble() < 0.05) {
-                    System.out.printf("Iteration number %d: ", i);
-                    flush();
-                    break;
-                }
-                double xmin = Collections.min(xvalues);
-                double xmax = Collections.max(xvalues);
-                double yForXmin = (constant - xCoefficient * xmin) / yCoefficient;
-                double yForXmax = (constant - xCoefficient * xmax) / yCoefficient;
-                XYChart.Series<Number, Number> series = new XYChart.Series<>();
-                series.setName("Regression");
-                Platform.runLater(() -> {
+                    XYChart.Series<Number, Number> series = new XYChart.Series<>();
+                    series.setName("Regression");
                     series.getData().add(new XYChart.Data<>(xmin, yForXmin));
                     series.getData().add(new XYChart.Data<>(xmax, yForXmax));
-                    uiComponent.getChart().getData().add(series);
                     String chartSeriesLine = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_SERIES_LINE.name());
                     String strokeWidth = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_STROKE_WIDTH.name());
                     String chartLineSymbol = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_LINE_SYMBOL.name());
                     String bgColor = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_BG_COLOR.name());
-                    series.getNode().lookup(chartSeriesLine).setStyle(strokeWidth);
-                    series.getData().forEach(data -> data.getNode().lookup(chartLineSymbol).setStyle(bgColor));
-
-                });
-                Thread.sleep(750);
-                if (i != maxIterations) {
                     Platform.runLater(() -> {
-                        uiComponent.getChart().getData().remove(series);
+                        lock.lock();
+                        try {
+                            uiComponent.getChart().getData().add(series);
+                            series.getNode().lookup(chartSeriesLine).setStyle(strokeWidth);
+                            series.getData().forEach(data -> data.getNode().lookup(chartLineSymbol).setStyle(bgColor));
+                        } finally {
+                            lock.unlock();
+                        }
                     });
+                    Thread.sleep(750);
+                    if (i + updateInterval <= maxIterations) {
+                        AtomicInteger iter = new AtomicInteger(i);
+                        Platform.runLater(() -> {
+                            lock.lock();
+                            try {
+                                uiComponent.getChart().getData().remove(series);
+                                // System.out.format("removing series %d + %d <= %d%n", iter.get(), updateInterval, maxIterations);
+                            } finally {
+                                lock.unlock();
+                            }
+                        });
+                    } else { // last iteration
+                        Platform.runLater(() -> {
+                            uiComponent.getScrnshotButton().setDisable(false);
+                        });
+                    }
                 }
+                /* if (i > maxIterations * .6 && RAND.nextDouble() < 0.05) {
+                    System.out.printf("Iteration number %d: ", i);
+                    flush();
+                    break;
+                } */
             }
+            isRunning.set(false);
         }
         catch (InterruptedException e) {
             System.out.println("Interrupted.");
         }
     }
 
-    public void manualrun() {
+    private void manualrun() {
         AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
         AppData dataComponent = ((AppData) applicationTemplate.getDataComponent());
         List<Double> xvalues = new ArrayList<>();
         dataComponent.getDataPoints().values().forEach(value -> xvalues.add(value.getX()));
-        if (currentIteration < maxIterations) {
+        if (currentIteration < maxIterations) { // 9/2 -> 5
             try {
-                // math math math
-                int xCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-                int yCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-                int constant = new Double(RAND.nextDouble() * 100).intValue();
-                output = Arrays.asList(xCoefficient, yCoefficient, constant);
+                isRunning.set(true);
+                uiComponent.getRunButton().setDisable(true);
                 double xmin = Collections.min(xvalues);
                 double xmax = Collections.max(xvalues);
-                double yForXmin = (constant - xCoefficient * xmin) / yCoefficient;
-                double yForXmax = (constant - xCoefficient * xmax) / yCoefficient;
+                double yForXmin = getYValue(xmin);
+                double yForXmax = getYValue(xmax);
                 XYChart.Series<Number, Number> series = new XYChart.Series<>();
+                series.getData().add(new XYChart.Data<>(xmin, yForXmin));
+                series.getData().add(new XYChart.Data<>(xmax, yForXmax));
+                String chartSeriesLine = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_SERIES_LINE.name());
+                String strokeWidth = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_STROKE_WIDTH.name());
+                String chartLineSymbol = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_LINE_SYMBOL.name());
+                String bgColor = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_BG_COLOR.name());
                 series.setName("Regression");
                 Platform.runLater(() -> {
-                    if (uiComponent.getChart().getData().contains(prevSeriesRef.get()))
-                        uiComponent.getChart().getData().remove(prevSeriesRef.get());
-                    series.getData().add(new XYChart.Data<>(xmin, yForXmin));
-                    series.getData().add(new XYChart.Data<>(xmax, yForXmax));
-                    uiComponent.getChart().getData().add(series);
-                    prevSeriesRef.set(series);
-                    String chartSeriesLine = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_SERIES_LINE.name());
-                    String strokeWidth = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_STROKE_WIDTH.name());
-                    String chartLineSymbol = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_LINE_SYMBOL.name());
-                    String bgColor = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_BG_COLOR.name());
-                    series.getNode().lookup(chartSeriesLine).setStyle(strokeWidth);
-                    series.getData().forEach(data -> data.getNode().lookup(chartLineSymbol).setStyle(bgColor));
+                    lock.lock();
+                    try {
+                        if (uiComponent.getChart().getData().contains(prevSeriesRef.get())) uiComponent.getChart().getData().remove(prevSeriesRef.get());
+                        uiComponent.getChart().getData().add(series);
+                        prevSeriesRef.set(series);
+                        series.getNode().lookup(chartSeriesLine).setStyle(strokeWidth);
+                        series.getData().forEach(data -> data.getNode().lookup(chartLineSymbol).setStyle(bgColor));
+                    } finally {
+                        lock.unlock();
+                    }
                 });
                 if (currentIteration == maxIterations - 1) { // on last iteration
                     uiComponent.getRunButton().setDisable(true);
@@ -165,11 +184,15 @@ public class RandomClassifier extends Classifier {
                 }
                 currentIteration += updateInterval;
                 Thread.sleep(750);
+                isRunning.set(false);
+                Platform.runLater(() -> {
+                    uiComponent.getScrnshotButton().setDisable(false);
+                });
+                uiComponent.getRunButton().setDisable(false);
             } catch (InterruptedException e) {
                 System.out.println("Manual run interrupted");
             }
         }
-
     }
 
     // for internal viewing only
@@ -179,10 +202,13 @@ public class RandomClassifier extends Classifier {
 
     protected void resetCurrentIteration() { currentIteration = 0; }
 
-    /** A placeholder main method to just make sure this code runs smoothly */
-    /* public static void main(String... args) throws IOException {
-        DataSet          dataset    = DataSet.fromTSDFile(new File("/Users/lilyzhong/IdeaProjects/cse219hw2/hw1/data-vilij/resources/data/data1.tsd").toPath());
-        RandomClassifier classifier = new RandomClassifier(dataset, 100, 5, true);
-        classifier.run(); // no multithreading yet
-    } */
+    private double getYValue(double xvalue) {
+        int xCoefficient = new Double(RAND.nextDouble() * 100).intValue();
+        int yCoefficient = new Double(RAND.nextDouble() * 100).intValue();
+        int constant = new Double(RAND.nextDouble() * 100).intValue();
+        output = Arrays.asList(xCoefficient, yCoefficient, constant);
+        return (constant - xCoefficient * xvalue) / yCoefficient;
+    }
+
+    public SimpleBooleanProperty isRunningProperty() { return isRunning; }
 }

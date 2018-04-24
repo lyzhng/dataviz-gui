@@ -3,6 +3,10 @@ package ui;
 import algorithms.*;
 import actions.AppActions;
 import dataprocessors.AppData;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -12,6 +16,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -22,6 +27,7 @@ import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static settings.AppPropertyTypes.*;
 import static vilij.settings.PropertyTypes.GUI_RESOURCE_PATH;
@@ -290,10 +296,20 @@ public final class AppUI extends UITemplate {
 
     private void toggleScrnshotButton() {
         chart.getData().addListener((ListChangeListener<XYChart.Series<Number, Number>>) c -> {
+            RandomClassifier randomClassifier = ((AppData) applicationTemplate.getDataComponent()).getRandomClassifier();
             if (chart.getData().isEmpty()) {
                 scrnshotButton.setDisable(true);
-            } else {
+            }
+            else {
                 scrnshotButton.setDisable(false);
+            }
+            if (randomClassifier != null) {
+                if (randomClassifier.isRunningProperty().get()) {
+                    scrnshotButton.setDisable(true);
+                }
+                else {
+                    scrnshotButton.setDisable(false);
+                }
             }
         });
     }
@@ -456,4 +472,6 @@ public final class AppUI extends UITemplate {
     public ConfigurationWindow getClassificationWindow() { return classificationWindow; }
 
     public ConfigurationWindow getClusteringWindow() { return clusteringWindow; }
+
+    public Button getScrnshotButton() { return scrnshotButton; }
 }

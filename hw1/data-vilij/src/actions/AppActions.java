@@ -1,7 +1,13 @@
 package actions;
 
+import algorithms.RandomClassifier;
 import dataprocessors.AppData;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.chart.LineChart;
 import javafx.scene.control.Button;
@@ -179,6 +185,7 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleExitRequest() {
         try {
+            // add code for alg is running
             if (!isUnsaved.get() || promptToSave())
                 System.exit(0);
         } catch (IOException e) { errorHandlingHelper(); }
