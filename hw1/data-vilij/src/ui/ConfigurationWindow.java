@@ -35,6 +35,8 @@ public class ConfigurationWindow extends Stage
     private CheckBox checkBox = new CheckBox();
     private List<Object> classificationPref = new ArrayList<>();
     private List<Object> clusteringPref = new ArrayList<>();
+    private boolean hasGivenConfigClassification = false;
+    private boolean hasGivenConfigClustering = false;
 
     public ConfigurationWindow(ApplicationTemplate applicationTemplate) {
         this.applicationTemplate = applicationTemplate;
@@ -124,6 +126,7 @@ public class ConfigurationWindow extends Stage
                 uiComponent.getRunButton().setDisable(false);
             }
             else if (validForClassification && uiComponent.isSelectedClassificationAlg()) {
+                hasGivenConfigClassification = true;
                 // load the same settings from classificationPref
                 classificationPref.add(iterField.getText());
                 classificationPref.add(intervalField.getText());
@@ -143,6 +146,9 @@ public class ConfigurationWindow extends Stage
                 String configErrorMsg = applicationTemplate.manager.getPropertyValue(CONFIG_ERROR_MESSAGE.name());
                 String defaultValue = applicationTemplate.manager.getPropertyValue(DEFAULT_VALUE.name());
                 errorDialog.show(configErrorTitle, configErrorMsg);
+                if (uiComponent.isSelectedClassificationAlg()) { hasGivenConfigClassification = true; }
+                else if (uiComponent.isSelectedClusteringAlg()) { hasGivenConfigClustering = true; }
+
                 if (!iterField.getText().matches("\\d+")) {
                     iterField.setText(defaultValue);
                 }
@@ -177,6 +183,9 @@ public class ConfigurationWindow extends Stage
     private void setXActions() {
         window.setOnCloseRequest(Event::consume);
     }
+
+    public boolean hasGivenConfigClassification() { return hasGivenConfigClassification; }
+    public boolean hasGivenConfigClustering() { return hasGivenConfigClustering; }
 
     // ok is pressed. data validation is through.
     public int getMaxIter() throws NumberFormatException { return Integer.parseInt(iterField.getText()); }

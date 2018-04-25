@@ -2,6 +2,8 @@ package dataprocessors;
 
 import algorithms.DataSet;
 import algorithms.RandomClassifier;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Point2D;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
@@ -21,6 +23,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 import static settings.AppPropertyTypes.*;
@@ -138,7 +141,7 @@ public class AppData implements DataComponent {
 
     public void displayData() {
         LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
-        chart.setAnimated(true);
+        chart.setAnimated(false);
         processor.toChartData(chart);
         String chartSeriesLine = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_SERIES_LINE.name());
         String avgSeries = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES.name());
@@ -278,8 +281,11 @@ public class AppData implements DataComponent {
             AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
             ConfigurationWindow configurationWindow = uiComponent.getClassificationWindow();
             DataSet dataset = DataSet.fromTSDProcessor(uiComponent.getCurrentText());
+            // only after the run button is clicked do i have configuration window's data
+            // therefore instantiation of randomclassifer is here
             this.randomClassifier = new RandomClassifier(dataset, applicationTemplate, configurationWindow.getMaxIter(), configurationWindow.getUpdateInterval(), configurationWindow.isContinuousRun());
-            new Thread(randomClassifier).start();
+            Thread t = new Thread(randomClassifier);
+            t.start();
         }
         catch (NumberFormatException e) {
             System.out.println("The values have not been set yet.");

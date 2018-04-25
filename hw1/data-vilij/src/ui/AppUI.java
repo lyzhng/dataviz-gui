@@ -21,6 +21,7 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import settings.AppPropertyTypes;
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
@@ -273,6 +274,7 @@ public final class AppUI extends UITemplate {
         setToggleHandler();
         configButtonHandler();
         setRunHandler();
+        handleXButton();
     }
 
     public void setRunHandler() {
@@ -297,19 +299,12 @@ public final class AppUI extends UITemplate {
     private void toggleScrnshotButton() {
         chart.getData().addListener((ListChangeListener<XYChart.Series<Number, Number>>) c -> {
             RandomClassifier randomClassifier = ((AppData) applicationTemplate.getDataComponent()).getRandomClassifier();
-            if (chart.getData().isEmpty()) {
+            if (chart.getData().isEmpty() && randomClassifier == null) {
                 scrnshotButton.setDisable(true);
-            }
-            else {
+            } else if (chart.getData().isEmpty()) {
+                scrnshotButton.setDisable(true);
+            } else if (!chart.getData().isEmpty() && randomClassifier == null) {
                 scrnshotButton.setDisable(false);
-            }
-            if (randomClassifier != null) {
-                if (randomClassifier.isRunningProperty().get()) {
-                    scrnshotButton.setDisable(true);
-                }
-                else {
-                    scrnshotButton.setDisable(false);
-                }
             }
         });
     }
@@ -443,7 +438,10 @@ public final class AppUI extends UITemplate {
         classificationAlg.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (classificationAlg.isSelected()) {
                 showRunButton();
-                runButton.setDisable(true);
+                if (!classificationWindow.hasGivenConfigClassification())
+                    runButton.setDisable(true);
+                else
+                    runButton.setDisable(false);
             }
         });
         clusteringAlg.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -474,4 +472,14 @@ public final class AppUI extends UITemplate {
     public ConfigurationWindow getClusteringWindow() { return clusteringWindow; }
 
     public Button getScrnshotButton() { return scrnshotButton; }
+
+    public Button getToggle() { return toggle; }
+
+    public RadioButton getClassificationAlg() { return classificationAlg; }
+    public RadioButton getClusteringAlg() { return clusteringAlg; }
+    public VBox getVbox() { return vbox; }
+
+    private void handleXButton() {
+        primaryStage.setOnCloseRequest(event -> System.exit(0));
+    }
 }

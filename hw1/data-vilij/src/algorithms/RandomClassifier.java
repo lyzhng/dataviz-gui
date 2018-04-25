@@ -3,9 +3,12 @@ package algorithms;
 import dataprocessors.AppData;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.scene.Node;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ValueAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.RadioButton;
+import javafx.scene.layout.HBox;
 import settings.AppPropertyTypes;
 import ui.AppUI;
 import vilij.settings.PropertyTypes;
@@ -34,8 +37,8 @@ public class RandomClassifier extends Classifier {
     private final int updateInterval;
     private static int currentIteration = 0;
     private static AtomicReference<XYChart.Series<Number, Number>> prevSeriesRef = new AtomicReference<>();
-    private static SimpleBooleanProperty isRunning = new SimpleBooleanProperty(false);
     ReentrantLock lock = new ReentrantLock();
+    private SimpleBooleanProperty finishedRunning = new SimpleBooleanProperty(false); // later
 
     // currently, this value does not change after instantiation
     private final AtomicBoolean tocontinue;
@@ -86,8 +89,12 @@ public class RandomClassifier extends Classifier {
             dataComponent.getDataPoints().values().forEach(value -> xvalues.add(value.getX()));
             double xmin = Collections.min(xvalues);
             double xmax = Collections.max(xvalues);
+            finishedRunning.set(false);
             for (int i = 1; i <= maxIterations && tocontinue(); i += 1) {
-                isRunning.set(true);
+                Platform.runLater(() -> {
+                    uiComponent.getToggle().setDisable(true);
+                    uiComponent.getScrnshotButton().setDisable(true);
+                });
                 double yForXmin = getYValue(xmin);
                 double yForXmax = getYValue(xmax);
                 // everything below is just for internal viewing of how the output is changing
@@ -96,7 +103,7 @@ public class RandomClassifier extends Classifier {
                     System.out.printf("Iteration number %d: ", i);
                     flush();
                     XYChart.Series<Number, Number> series = new XYChart.Series<>();
-                    series.setName("Regression");
+                    series.setName("Random Classifier Line");
                     series.getData().add(new XYChart.Data<>(xmin, yForXmin));
                     series.getData().add(new XYChart.Data<>(xmax, yForXmax));
                     String chartSeriesLine = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_SERIES_LINE.name());
@@ -113,34 +120,40 @@ public class RandomClassifier extends Classifier {
                             lock.unlock();
                         }
                     });
-                    Thread.sleep(750);
+                    Thread.sleep(500);
                     if (i + updateInterval <= maxIterations) {
-                        AtomicInteger iter = new AtomicInteger(i);
                         Platform.runLater(() -> {
                             lock.lock();
                             try {
                                 uiComponent.getChart().getData().remove(series);
-                                // System.out.format("removing series %d + %d <= %d%n", iter.get(), updateInterval, maxIterations);
                             } finally {
                                 lock.unlock();
                             }
                         });
-                    } else { // last iteration
-                        Platform.runLater(() -> {
-                            uiComponent.getScrnshotButton().setDisable(false);
-                        });
                     }
                 }
+
                 /* if (i > maxIterations * .6 && RAND.nextDouble() < 0.05) {
                     System.out.printf("Iteration number %d: ", i);
                     flush();
                     break;
                 } */
             }
-            isRunning.set(false);
+            Platform.runLater(() -> {
+                uiComponent.getScrnshotButton().setDisable(false);
+                uiComponent.getToggle().setDisable(false);
+                uiComponent.getAlgorithmSel().getSelectionModel().clearSelection();
+                uiComponent.getAlgorithmSel().setManaged(true);
+                uiComponent.getAlgorithmSel().setVisible(true);
+                ((RadioButton) ((HBox) uiComponent.getVbox().getChildren().get(0)).getChildren().get(0)).setSelected(false);
+                uiComponent.getVbox().setVisible(false);
+                uiComponent.getVbox().setManaged(false);
+                uiComponent.hideRunButton();
+            });
+            finishedRunning.set(true);
         }
         catch (InterruptedException e) {
-            System.out.println("Interrupted.");
+
         }
     }
 
@@ -149,10 +162,14 @@ public class RandomClassifier extends Classifier {
         AppData dataComponent = ((AppData) applicationTemplate.getDataComponent());
         List<Double> xvalues = new ArrayList<>();
         dataComponent.getDataPoints().values().forEach(value -> xvalues.add(value.getX()));
-        if (currentIteration < maxIterations) { // 9/2 -> 5
+        if (currentIteration < maxIterations && updateInterval < maxIterations) {
             try {
-                isRunning.set(true);
-                uiComponent.getRunButton().setDisable(true);
+                finishedRunning.set(false);
+                currentIteration += updateInterval;
+                Platform.runLater(() -> {
+                    uiComponent.getScrnshotButton().setDisable(true);
+                    uiComponent.getRunButton().setDisable(true);
+                });
                 double xmin = Collections.min(xvalues);
                 double xmax = Collections.max(xvalues);
                 double yForXmin = getYValue(xmin);
@@ -164,11 +181,12 @@ public class RandomClassifier extends Classifier {
                 String strokeWidth = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_STROKE_WIDTH.name());
                 String chartLineSymbol = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_LINE_SYMBOL.name());
                 String bgColor = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_BG_COLOR.name());
-                series.setName("Regression");
+                series.setName("Random Classifier Line");
                 Platform.runLater(() -> {
                     lock.lock();
                     try {
-                        if (uiComponent.getChart().getData().contains(prevSeriesRef.get())) uiComponent.getChart().getData().remove(prevSeriesRef.get());
+                        if (uiComponent.getChart().getData().contains(prevSeriesRef.get()))
+                            uiComponent.getChart().getData().remove(prevSeriesRef.get());
                         uiComponent.getChart().getData().add(series);
                         prevSeriesRef.set(series);
                         series.getNode().lookup(chartSeriesLine).setStyle(strokeWidth);
@@ -177,20 +195,31 @@ public class RandomClassifier extends Classifier {
                         lock.unlock();
                     }
                 });
-                if (currentIteration == maxIterations - 1) { // on last iteration
-                    uiComponent.getRunButton().setDisable(true);
+                Thread.sleep(500);
+                if (currentIteration + updateInterval > maxIterations) { // on last iteration
+                    Platform.runLater(() -> {
+                        uiComponent.getScrnshotButton().setDisable(false);
+                        uiComponent.getToggle().setDisable(false);
+                        uiComponent.getAlgorithmSel().getSelectionModel().clearSelection();
+                        uiComponent.getAlgorithmSel().setManaged(true);
+                        uiComponent.getAlgorithmSel().setVisible(true);
+                        ((RadioButton) ((HBox) uiComponent.getVbox().getChildren().get(0)).getChildren().get(0)).setSelected(false);
+                        uiComponent.getVbox().setVisible(false);
+                        uiComponent.getVbox().setManaged(false);
+                        uiComponent.hideRunButton();
+                    });
                     resetCurrentIteration();
+                    finishedRunning.set(true);
+
                     return;
+                } else {
+                    Platform.runLater(() -> {
+                        uiComponent.getScrnshotButton().setDisable(false);
+                        uiComponent.getRunButton().setDisable(false);
+                    });
                 }
-                currentIteration += updateInterval;
-                Thread.sleep(750);
-                isRunning.set(false);
-                Platform.runLater(() -> {
-                    uiComponent.getScrnshotButton().setDisable(false);
-                });
-                uiComponent.getRunButton().setDisable(false);
             } catch (InterruptedException e) {
-                System.out.println("Manual run interrupted");
+
             }
         }
     }
@@ -210,5 +239,6 @@ public class RandomClassifier extends Classifier {
         return (constant - xCoefficient * xvalue) / yCoefficient;
     }
 
-    public SimpleBooleanProperty isRunningProperty() { return isRunning; }
+    @Override
+    public boolean finishedRunning() { return finishedRunning.get(); }
 }
