@@ -3,6 +3,7 @@ package ui;
 import algorithms.*;
 import actions.AppActions;
 import dataprocessors.AppData;
+import dialogs.ExitWhileUnfinishedDialog;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -23,6 +24,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import settings.AppPropertyTypes;
+import vilij.components.ErrorDialog;
 import vilij.propertymanager.PropertyManager;
 import vilij.templates.ApplicationTemplate;
 import vilij.templates.UITemplate;
@@ -46,6 +48,7 @@ public final class AppUI extends UITemplate {
     ApplicationTemplate applicationTemplate;
     ConfigurationWindow classificationWindow;
     ConfigurationWindow clusteringWindow;
+    ExitWhileUnfinishedDialog exitWhileUnfinishedDialog = ExitWhileUnfinishedDialog.getDialog();
 
     @SuppressWarnings("FieldCanBeLocal")
     private Button scrnshotButton; // toolbar button to take a screenshot of the data
@@ -161,6 +164,7 @@ public final class AppUI extends UITemplate {
     public void initialize() {
         layout();
         setWorkspaceActions();
+        exitWhileUnfinishedDialog.init(primaryStage);
     }
 
     @Override

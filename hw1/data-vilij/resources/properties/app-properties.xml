@@ -83,7 +83,8 @@ functionality within the main workspace. -->
         <property name="AVG_SERIES_STROKE_WIDTH" value="-fx-stroke-width: 4px;" />
         <property name="CHART_LINE_SYMBOL" value=".chart-line-symbol" />
         <property name="AVG_SERIES_BG_COLOR" value="-fx-background-color: transparent;" />
-        <property name="AVG_SERIES_NORM" value="avg-series" />
+        <property name="RETURN" value="Return" />
+        <property name="EXIT_ANYWAY" value="Exit Anyway" />
     </property_list>
     <property_options_list/>
 </properties>

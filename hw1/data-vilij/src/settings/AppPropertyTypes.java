@@ -77,5 +77,4 @@ public enum AppPropertyTypes {
     AVG_SERIES_STROKE_WIDTH,
     CHART_LINE_SYMBOL,
     AVG_SERIES_BG_COLOR,
-    AVG_SERIES_NORM
 }

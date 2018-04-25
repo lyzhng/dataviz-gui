@@ -110,7 +110,7 @@ public class ConfigurationWindow extends Stage
                     numClustersField.getText().matches("\\d+") &&
                     Integer.parseInt(numClustersField.getText()) > 0;
 
-            if (validForClustering && uiComponent.isSelectedClusteringAlg()) {
+            if (validForClustering && uiComponent.isSelectedClusteringAlg() && getUpdateInterval() <= getMaxIter()) {
                 // load the same settings from clusteringPref
                 clusteringPref.add(iterField.getText());
                 clusteringPref.add(intervalField.getText());
@@ -125,7 +125,7 @@ public class ConfigurationWindow extends Stage
                 }
                 uiComponent.getRunButton().setDisable(false);
             }
-            else if (validForClassification && uiComponent.isSelectedClassificationAlg()) {
+            else if (validForClassification && uiComponent.isSelectedClassificationAlg() && getUpdateInterval() <= getMaxIter()) {
                 hasGivenConfigClassification = true;
                 // load the same settings from classificationPref
                 classificationPref.add(iterField.getText());
@@ -146,21 +146,30 @@ public class ConfigurationWindow extends Stage
                 String configErrorMsg = applicationTemplate.manager.getPropertyValue(CONFIG_ERROR_MESSAGE.name());
                 String defaultValue = applicationTemplate.manager.getPropertyValue(DEFAULT_VALUE.name());
                 errorDialog.show(configErrorTitle, configErrorMsg);
-                if (uiComponent.isSelectedClassificationAlg()) { hasGivenConfigClassification = true; }
-                else if (uiComponent.isSelectedClusteringAlg()) { hasGivenConfigClustering = true; }
 
+                boolean updateLargerThanMax = iterField.getText().matches("\\d+") && Integer.parseInt(iterField.getText()) > 0 &&
+                        intervalField.getText().matches("\\d+") && Integer.parseInt(intervalField.getText()) > 0 &&
+                        Integer.parseInt(intervalField.getText()) > Integer.parseInt(iterField.getText());
+
+                if (uiComponent.isSelectedClassificationAlg()) {
+                    hasGivenConfigClassification = true;
+                } else if (uiComponent.isSelectedClusteringAlg()) {
+                    hasGivenConfigClustering = true;
+                }
+
+                if (updateLargerThanMax) {
+                    intervalField.setText(iterField.getText());
+                }
                 if (!iterField.getText().matches("\\d+")) {
                     iterField.setText(defaultValue);
-                }
-                else if (iterField.getText().matches("\\d+") && Integer.parseInt(iterField.getText()) <= 0) {
+                } else if (iterField.getText().matches("\\d+") && Integer.parseInt(iterField.getText()) <= 0) {
                     int num = (int) (Math.floor(Integer.parseInt(iterField.getText())));
                     if (num == 0) num = 1;
                     iterField.setText(String.valueOf(num));
                 }
                 if (!intervalField.getText().matches("\\d+")) {
                     intervalField.setText(defaultValue);
-                }
-                else if (intervalField.getText().matches("\\d+") && Integer.parseInt(intervalField.getText()) <= 0) {
+                } else if (intervalField.getText().matches("\\d+") && Integer.parseInt(intervalField.getText()) <= 0) {
                     int num = (int) (Math.floor(Integer.parseInt(intervalField.getText())));
                     if (num == 0) num = 1;
                     intervalField.setText(String.valueOf(num));
@@ -168,14 +177,14 @@ public class ConfigurationWindow extends Stage
                 if (uiComponent.isSelectedClusteringAlg()) {
                     if (!numClustersField.getText().matches("\\d+")) {
                         numClustersField.setText(defaultValue);
-                    }
-                    else if (numClustersField.getText().matches("\\d+") && Integer.parseInt(numClustersField.getText()) <= 0) {
+                    } else if (numClustersField.getText().matches("\\d+") && Integer.parseInt(numClustersField.getText()) <= 0) {
                         int num = (int) (Math.floor(Integer.parseInt(numClustersField.getText())));
                         if (num == 0) num = 1;
                         numClustersField.setText(String.valueOf(num));
                     }
                 }
             }
+            uiComponent.getRunButton().setDisable(false);
             window.hide();
         });
     }

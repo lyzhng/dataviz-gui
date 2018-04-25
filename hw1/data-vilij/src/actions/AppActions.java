@@ -1,7 +1,9 @@
 package actions;
 
+import algorithms.Algorithm;
 import algorithms.RandomClassifier;
 import dataprocessors.AppData;
+import dialogs.ExitWhileUnfinishedDialog;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -67,6 +69,15 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleNewRequest() {
         try {
+            Algorithm alg = ((AppData) applicationTemplate.getDataComponent()).getRandomClassifier();
+            if (alg != null) {
+                if (!alg.finishedRunning()) {
+                    ErrorDialog errorDialog = ErrorDialog.getDialog();
+                    String title = "ALGORITHM STILL RUNNING!";
+                    String msg = "You are trying to create new data while an algorithm is running.";
+                    errorDialog.show(title, msg);
+                }
+            }
             if (!isUnsaved.get() || promptToSave()) {
                 AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
                 applicationTemplate.getDataComponent().clear();
@@ -83,6 +94,15 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleSaveRequest() {
+        Algorithm alg = ((AppData) applicationTemplate.getDataComponent()).getRandomClassifier();
+        if (alg != null) {
+            if (!alg.finishedRunning()) {
+                ErrorDialog errorDialog = ErrorDialog.getDialog();
+                String title = "ALGORITHM STILL RUNNING!";
+                String msg = "You are trying to save current data while an algorithm is running.";
+                errorDialog.show(title, msg);
+            }
+        }
         try {
             AtomicBoolean hadAnError = ((AppData) applicationTemplate.getDataComponent()).hadAnError();
             applicationTemplate.getDataComponent().clear();
@@ -186,8 +206,36 @@ public final class AppActions implements ActionComponent {
     public void handleExitRequest() {
         try {
             // add code for alg is running
-            if (!isUnsaved.get() || promptToSave())
+            Algorithm alg = ((AppData) applicationTemplate.getDataComponent()).getRandomClassifier();
+            ExitWhileUnfinishedDialog dialog = ExitWhileUnfinishedDialog.getDialog();
+            if (alg != null) {
+                // algorithm has been selected & is not finished running
+                if (!alg.finishedRunning()) {
+                    // exit anyway | cancel
+                    String title = "Algorithm is not done running.";
+                    String msg = "Are you sure you want to exit while the algorithm is still running?";
+                    dialog.show(title, msg);
+                    ExitWhileUnfinishedDialog.Option selectedOption = dialog.getSelectedOption();
+                    if (selectedOption.name().equalsIgnoreCase(ExitWhileUnfinishedDialog.Option.RETURN.name())) {
+                        return;
+                    }
+                    if (selectedOption.name().equalsIgnoreCase(ExitWhileUnfinishedDialog.Option.EXIT.name())) {
+                        System.exit(0);
+                    }
+                }
+                // algorithm has finished running
+                else {
+                    if (isUnsaved.get()) { promptToSave(); }
+                    else { save(); }
+                }
                 System.exit(0);
+            }
+            // algorithm has never been selected | start of app
+            else {
+                if (isUnsaved.get()) { promptToSave(); }
+                else { save(); }
+                System.exit(0);
+            }
         } catch (IOException e) { errorHandlingHelper(); }
     }
 

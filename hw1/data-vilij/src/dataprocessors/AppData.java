@@ -127,10 +127,12 @@ public class AppData implements DataComponent {
     public void saveData(Path dataFilePath) {
         // NOTE: completing this method was not a part of HW 1. You may have implemented file saving from the
         // confirmation dialog elsewhere in a different way.
-        try (PrintWriter writer = new PrintWriter(Files.newOutputStream(dataFilePath))) {
-            writer.write(((AppUI) applicationTemplate.getUIComponent()).getCurrentText());
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
+        if (dataFilePath != null) {
+            try (PrintWriter writer = new PrintWriter(Files.newOutputStream(dataFilePath))) {
+                writer.write(((AppUI) applicationTemplate.getUIComponent()).getCurrentText());
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
         }
     }
 
@@ -141,7 +143,7 @@ public class AppData implements DataComponent {
 
     public void displayData() {
         LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
-        chart.setAnimated(false);
+        chart.setAnimated(true);
         processor.toChartData(chart);
         String chartSeriesLine = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_SERIES_LINE.name());
         String avgSeries = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES.name());
@@ -281,11 +283,14 @@ public class AppData implements DataComponent {
             AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
             ConfigurationWindow configurationWindow = uiComponent.getClassificationWindow();
             DataSet dataset = DataSet.fromTSDProcessor(uiComponent.getCurrentText());
+            if (randomClassifier != null && randomClassifier.finishedRunning()) {
+                uiComponent.clearChart();
+                displayData();
+            }
             // only after the run button is clicked do i have configuration window's data
             // therefore instantiation of randomclassifer is here
             this.randomClassifier = new RandomClassifier(dataset, applicationTemplate, configurationWindow.getMaxIter(), configurationWindow.getUpdateInterval(), configurationWindow.isContinuousRun());
-            Thread t = new Thread(randomClassifier);
-            t.start();
+            new Thread(randomClassifier).start();
         }
         catch (NumberFormatException e) {
             System.out.println("The values have not been set yet.");

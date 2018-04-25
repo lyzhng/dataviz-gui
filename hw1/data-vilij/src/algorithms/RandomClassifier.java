@@ -84,7 +84,6 @@ public class RandomClassifier extends Classifier {
         try {
             AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
             AppData dataComponent = ((AppData) applicationTemplate.getDataComponent());
-            uiComponent.getRunButton().setDisable(true);
             List<Double> xvalues = new ArrayList<>();
             dataComponent.getDataPoints().values().forEach(value -> xvalues.add(value.getX()));
             double xmin = Collections.min(xvalues);
@@ -92,6 +91,7 @@ public class RandomClassifier extends Classifier {
             finishedRunning.set(false);
             for (int i = 1; i <= maxIterations && tocontinue(); i += 1) {
                 Platform.runLater(() -> {
+                    uiComponent.getRunButton().setDisable(true);
                     uiComponent.getToggle().setDisable(true);
                     uiComponent.getScrnshotButton().setDisable(true);
                 });
@@ -162,7 +162,7 @@ public class RandomClassifier extends Classifier {
         AppData dataComponent = ((AppData) applicationTemplate.getDataComponent());
         List<Double> xvalues = new ArrayList<>();
         dataComponent.getDataPoints().values().forEach(value -> xvalues.add(value.getX()));
-        if (currentIteration < maxIterations && updateInterval < maxIterations) {
+        if (currentIteration < maxIterations && updateInterval <= maxIterations) {
             try {
                 finishedRunning.set(false);
                 currentIteration += updateInterval;
@@ -210,7 +210,6 @@ public class RandomClassifier extends Classifier {
                     });
                     resetCurrentIteration();
                     finishedRunning.set(true);
-
                     return;
                 } else {
                     Platform.runLater(() -> {
@@ -232,9 +231,9 @@ public class RandomClassifier extends Classifier {
     protected void resetCurrentIteration() { currentIteration = 0; }
 
     private double getYValue(double xvalue) {
-        int xCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-        int yCoefficient = new Double(RAND.nextDouble() * 100).intValue();
-        int constant = new Double(RAND.nextDouble() * 100).intValue();
+        int xCoefficient =  new Long(-1 * Math.round((2 * RAND.nextDouble() - 1) * 10)).intValue();
+        int yCoefficient = 10;
+        int constant     = RAND.nextInt(11);
         output = Arrays.asList(xCoefficient, yCoefficient, constant);
         return (constant - xCoefficient * xvalue) / yCoefficient;
     }
