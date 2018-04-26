@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ValueAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
 import javafx.scene.layout.HBox;
 import settings.AppPropertyTypes;
@@ -169,11 +170,15 @@ public class RandomClassifier extends Classifier {
                 Platform.runLater(() -> {
                     uiComponent.getScrnshotButton().setDisable(true);
                     uiComponent.getRunButton().setDisable(true);
+                    uiComponent.getToggle().setDisable(true);
+                    ((Button) ((HBox) uiComponent.getVbox().getChildren().get(0)).getChildren().get(1)).setDisable(true);
                 });
                 double xmin = Collections.min(xvalues);
                 double xmax = Collections.max(xvalues);
                 double yForXmin = getYValue(xmin);
                 double yForXmax = getYValue(xmax);
+                System.out.printf("Iteration number %d: ", currentIteration);
+                flush();
                 XYChart.Series<Number, Number> series = new XYChart.Series<>();
                 series.getData().add(new XYChart.Data<>(xmin, yForXmin));
                 series.getData().add(new XYChart.Data<>(xmax, yForXmax));
@@ -206,6 +211,7 @@ public class RandomClassifier extends Classifier {
                         ((RadioButton) ((HBox) uiComponent.getVbox().getChildren().get(0)).getChildren().get(0)).setSelected(false);
                         uiComponent.getVbox().setVisible(false);
                         uiComponent.getVbox().setManaged(false);
+                        ((Button) ((HBox) uiComponent.getVbox().getChildren().get(0)).getChildren().get(1)).setDisable(false);
                         uiComponent.hideRunButton();
                     });
                     resetCurrentIteration();

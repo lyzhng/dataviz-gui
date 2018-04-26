@@ -82,7 +82,6 @@ public final class AppActions implements ActionComponent {
                 AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
                 applicationTemplate.getDataComponent().clear();
                 applicationTemplate.getUIComponent().clear();
-                isUnsaved.set(false);
                 dataFilePath = null;
                 uiComponent.enableTextArea();
                 uiComponent.showTextArea();
@@ -124,7 +123,6 @@ public final class AppActions implements ActionComponent {
                 save();
             } else if (!isSaved() && !hadAnError.get()){
                 promptToSave();
-                setIsUnsavedProperty(false);
             } else {
                 String errSaveTitle = applicationTemplate.manager.getPropertyValue(SAVE_ERROR_TITLE.name());
                 String errSaveMsg = applicationTemplate.manager.getPropertyValue(SAVE_ERROR_MSG.name());
@@ -164,6 +162,18 @@ public final class AppActions implements ActionComponent {
         try {
             AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
             AppData dataComponent = (AppData) applicationTemplate.getDataComponent();
+
+            Algorithm alg = ((AppData) applicationTemplate.getDataComponent()).getRandomClassifier();
+            if (alg != null) {
+                if (!alg.finishedRunning()) {
+                    ErrorDialog errorDialog = ErrorDialog.getDialog();
+                    String title = "Algorithm is still running.";
+                    String msg = "You are trying to load data from a file while an algorithm is currently running.";
+                    errorDialog.show(title, msg);
+                    return;
+                }
+            }
+
             uiComponent.clearChart();
             dataComponent.clear();
             FileChooser fileChooser = new FileChooser();
