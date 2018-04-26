@@ -21,6 +21,7 @@ import java.util.List;
  */
 public class ExitWhileUnfinishedDialog extends Stage implements Dialog
 {
+    // push change
     /**
      * This class provides the template for displaying three-way confirmation messages to the end user of a Vilij
      * application. It always provides the two controls: (i) a customizable message, and (ii) a set of three buttons
