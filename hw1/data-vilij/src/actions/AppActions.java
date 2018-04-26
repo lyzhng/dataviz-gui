@@ -73,8 +73,8 @@ public final class AppActions implements ActionComponent {
             if (alg != null) {
                 if (!alg.finishedRunning()) {
                     ErrorDialog errorDialog = ErrorDialog.getDialog();
-                    String title = "ALGORITHM STILL RUNNING!";
-                    String msg = "You are trying to create new data while an algorithm is running.";
+                    String title = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.UNFINISHED_RUN.name());
+                    String msg = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.UNFINISHED_NEWDATA_WARNING.name());
                     errorDialog.show(title, msg);
                 }
             }
@@ -97,8 +97,8 @@ public final class AppActions implements ActionComponent {
         if (alg != null) {
             if (!alg.finishedRunning()) {
                 ErrorDialog errorDialog = ErrorDialog.getDialog();
-                String title = "ALGORITHM STILL RUNNING!";
-                String msg = "You are trying to save current data while an algorithm is running.";
+                String title = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.UNFINISHED_RUN.name());
+                String msg = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.UNFINISHED_SAVE_WARNING.name());
                 errorDialog.show(title, msg);
             }
         }
@@ -167,8 +167,8 @@ public final class AppActions implements ActionComponent {
             if (alg != null) {
                 if (!alg.finishedRunning()) {
                     ErrorDialog errorDialog = ErrorDialog.getDialog();
-                    String title = "Algorithm is still running.";
-                    String msg = "You are trying to load data from a file while an algorithm is currently running.";
+                    String title = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.UNFINISHED_RUN.name());
+                    String msg = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.UNFINISHED_LOAD_WARNING.name());
                     errorDialog.show(title, msg);
                     return;
                 }
@@ -222,8 +222,8 @@ public final class AppActions implements ActionComponent {
                 // algorithm has been selected & is not finished running
                 if (!alg.finishedRunning()) {
                     // exit anyway | cancel
-                    String title = "Algorithm is not done running.";
-                    String msg = "Are you sure you want to exit while the algorithm is still running?";
+                    String title = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.UNFINISHED_RUN.name());
+                    String msg = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.EXIT_WHILE_RUNNING_WARNING.name());
                     dialog.show(title, msg);
                     ExitWhileUnfinishedDialog.Option selectedOption = dialog.getSelectedOption();
                     if (selectedOption.name().equalsIgnoreCase(ExitWhileUnfinishedDialog.Option.RETURN.name())) {

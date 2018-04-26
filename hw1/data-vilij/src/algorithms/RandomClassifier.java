@@ -104,7 +104,8 @@ public class RandomClassifier extends Classifier {
                     System.out.printf("Iteration number %d: ", i);
                     flush();
                     XYChart.Series<Number, Number> series = new XYChart.Series<>();
-                    series.setName("Random Classifier Line");
+                    final String RANDOM_CLASSIFIER_LINE = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.RANDOM_CLASSIFIER_LINE.name());
+                    series.setName(RANDOM_CLASSIFIER_LINE);
                     series.getData().add(new XYChart.Data<>(xmin, yForXmin));
                     series.getData().add(new XYChart.Data<>(xmax, yForXmax));
                     String chartSeriesLine = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_SERIES_LINE.name());
@@ -186,7 +187,8 @@ public class RandomClassifier extends Classifier {
                 String strokeWidth = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_STROKE_WIDTH.name());
                 String chartLineSymbol = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_LINE_SYMBOL.name());
                 String bgColor = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_BG_COLOR.name());
-                series.setName("Random Classifier Line");
+                final String RANDOM_CLASSIFIER_LINE = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.RANDOM_CLASSIFIER_LINE.name());
+                series.setName(RANDOM_CLASSIFIER_LINE);
                 Platform.runLater(() -> {
                     lock.lock();
                     try {

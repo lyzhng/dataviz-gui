@@ -85,6 +85,11 @@ functionality within the main workspace. -->
         <property name="AVG_SERIES_BG_COLOR" value="-fx-background-color: transparent;" />
         <property name="RETURN" value="Return" />
         <property name="EXIT_ANYWAY" value="Exit Anyway" />
+        <property name="UNFINISHED_RUN_TITLE" value="Algorithm is not done running." />
+        <property name="UNFINISHED_NEWDATA_WARNING" value="You are trying to create new data while an algorithm is running." />
+        <property name="UNFINISHED_SAVE_WARNING" value="You are trying to save current data while an algorithm is running." />
+        <property name="UNFINISHED_LOAD_WARNING" value="You are trying to load data from a file while an algorithm is currently running." />
+        <property name="RANDOM_CLASSIFIER_LINE" value="Random Classifier Line" />
     </property_list>
     <property_options_list/>
 </properties>

@@ -201,7 +201,7 @@ public final class AppUI extends UITemplate {
     private void layout() {
         PropertyManager manager = applicationTemplate.manager;
         NumberAxis      xAxis   = new NumberAxis();
-        NumberAxis      yAxis   = new NumberAxis();
+        NumberAxis      yAxis   = new NumberAxis(-10, 10, 2);
         chart = new LineChart<>(xAxis, yAxis);
 
         chart.getStylesheets().add(getClass().getResource(manager.getPropertyValue(CHART_CSS.name())).toExternalForm());
