@@ -95,6 +95,7 @@ public class RandomClassifier extends Classifier {
                     uiComponent.getRunButton().setDisable(true);
                     uiComponent.getToggle().setDisable(true);
                     uiComponent.getScrnshotButton().setDisable(true);
+                    ((Button) ((HBox) uiComponent.getVbox().getChildren().get(0)).getChildren().get(1)).setDisable(true);
                 });
                 double yForXmin = getYValue(xmin);
                 double yForXmax = getYValue(xmax);
@@ -148,6 +149,7 @@ public class RandomClassifier extends Classifier {
                 uiComponent.getAlgorithmSel().setManaged(true);
                 uiComponent.getAlgorithmSel().setVisible(true);
                 ((RadioButton) ((HBox) uiComponent.getVbox().getChildren().get(0)).getChildren().get(0)).setSelected(false);
+                ((Button) ((HBox) uiComponent.getVbox().getChildren().get(0)).getChildren().get(1)).setDisable(false);
                 uiComponent.getVbox().setVisible(false);
                 uiComponent.getVbox().setManaged(false);
                 uiComponent.hideRunButton();
