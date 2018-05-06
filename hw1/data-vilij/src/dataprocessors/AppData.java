@@ -209,7 +209,6 @@ public class AppData implements DataComponent {
         try {
             clear();
             String text = uiComponent.getTextArea().getText();
-            System.out.println(text);
             processor.processString(text);
             try {
                 String filename = getAlgorithmFile();

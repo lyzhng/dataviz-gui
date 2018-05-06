@@ -207,6 +207,10 @@ public final class AppUI extends UITemplate {
         PropertyManager manager = applicationTemplate.manager;
         NumberAxis      xAxis   = new NumberAxis();
         NumberAxis      yAxis   = new NumberAxis();
+        xAxis.setAutoRanging(true);
+        yAxis.setAutoRanging(true);
+        xAxis.setForceZeroInRange(false);
+        yAxis.setForceZeroInRange(false);
         chart = new LineChart<>(xAxis, yAxis);
 
         chart.getStylesheets().add(getClass().getResource(manager.getPropertyValue(CHART_CSS.name())).toExternalForm());

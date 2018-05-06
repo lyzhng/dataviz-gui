@@ -7,6 +7,7 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
 import javafx.scene.layout.HBox;
+import settings.AppPropertyTypes;
 import ui.AppUI;
 import vilij.templates.ApplicationTemplate;
 
@@ -99,7 +100,7 @@ public class RandomClusterer extends Clusterer {
                         dataComponent.getProcessor().setDataPoints(updatedData.getLocations());
                         dataComponent.getProcessor().toChartData(uiComponent.getChart());
                         uiComponent.getChart().getData().forEach(ser -> {
-                            ser.getNode().setStyle("-fx-stroke: null");
+                            ser.getNode().setStyle(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.NULL_STROKE.name()));
                         });
                     } finally {
                         lock.unlock();
@@ -157,7 +158,7 @@ public class RandomClusterer extends Clusterer {
                             dataComponent.getProcessor().setDataPoints(updatedDataSet.getLocations());
                             dataComponent.getProcessor().toChartData(uiComponent.getChart());
                             uiComponent.getChart().getData().forEach(ser -> {
-                                ser.getNode().setStyle("-fx-stroke: null");
+                                ser.getNode().setStyle(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.NULL_STROKE.name()));
                             });
                         } finally {
                             lock.unlock();

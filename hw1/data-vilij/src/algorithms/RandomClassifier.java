@@ -82,7 +82,7 @@ public class RandomClassifier extends Classifier {
                 ((AppData) applicationTemplate.getDataComponent()).getProcessor().processString(uiComponent.getTextArea().getText());
                 ((AppData) applicationTemplate.getDataComponent()).getProcessor().toChartData(uiComponent.getChart());
                 uiComponent.getChart().getData().forEach(ser -> {
-                    ser.getNode().setStyle("-fx-stroke: null");
+                    ser.getNode().setStyle(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.NULL_STROKE.name()));
                 });
             } catch (Exception e) { }
         });

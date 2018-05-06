@@ -6,6 +6,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
 import javafx.scene.layout.HBox;
+import settings.AppPropertyTypes;
 import ui.AppUI;
 import vilij.templates.ApplicationTemplate;
 
@@ -72,7 +73,7 @@ public class KMeansClusterer extends Clusterer {
                 ((AppData) applicationTemplate.getDataComponent()).getProcessor().processString(uiComponent.getTextArea().getText());
                 ((AppData) applicationTemplate.getDataComponent()).getProcessor().toChartData(uiComponent.getChart());
                 uiComponent.getChart().getData().forEach(ser -> {
-                    ser.getNode().setStyle("-fx-stroke: null");
+                    ser.getNode().setStyle(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.NULL_STROKE.name()));
                 });
             } catch (Exception e) { }
         });
@@ -104,7 +105,7 @@ public class KMeansClusterer extends Clusterer {
                     dataComponent.getProcessor().setDataPoints(dataset.getLocations());
                     dataComponent.getProcessor().toChartData(uiComponent.getChart());
                     uiComponent.getChart().getData().forEach(ser -> {
-                        ser.getNode().setStyle("-fx-stroke: null");
+                        ser.getNode().setStyle(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.NULL_STROKE.name()));
                     });
                 });
                 try {
@@ -196,7 +197,7 @@ public class KMeansClusterer extends Clusterer {
                     dataComponent.getProcessor().setDataPoints(dataset.getLocations());
                     dataComponent.getProcessor().toChartData(uiComponent.getChart());
                     uiComponent.getChart().getData().forEach(ser -> {
-                        ser.getNode().setStyle("-fx-stroke: null");
+                        ser.getNode().setStyle(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.NULL_STROKE.name()));
                     });
                 });
                 Thread.sleep(500);
