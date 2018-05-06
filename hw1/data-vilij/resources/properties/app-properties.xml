@@ -90,6 +90,9 @@ functionality within the main workspace. -->
         <property name="UNFINISHED_SAVE_WARNING" value="You are trying to save current data while an algorithm is running." />
         <property name="UNFINISHED_LOAD_WARNING" value="You are trying to load data from a file while an algorithm is currently running." />
         <property name="RANDOM_CLASSIFIER_LINE" value="Random Classifier Line" />
+        <property name="RANDOMCLASSIFIER" value="RandomClassifier"/>
+        <property name="RANDOMCLUSTERER" value="RandomClusterer"/>
+        <property name="KMEANSCLUSTERER" value="KMeansClusterer"/>
     </property_list>
     <property_options_list/>
 </properties>

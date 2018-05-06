@@ -74,7 +74,6 @@ public class RandomClassifier extends Classifier {
     @Override
     public void run() {
         // case for continuous run
-        Platform.setImplicitExit(true);
         if (tocontinue())
             continuousrun();
         else

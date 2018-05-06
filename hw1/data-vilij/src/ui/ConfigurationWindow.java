@@ -193,6 +193,7 @@ public class ConfigurationWindow extends Stage
             uiComponent.getRunButton().setDisable(false);
             window.hide();
         });
+        uiComponent.showRunButton();
     }
 
     private void setXActions() {
@@ -206,4 +207,5 @@ public class ConfigurationWindow extends Stage
     public int getMaxIter() throws NumberFormatException { return Integer.parseInt(iterField.getText()); }
     public int getUpdateInterval() throws NumberFormatException { return Integer.parseInt(intervalField.getText()); }
     public boolean isContinuousRun() { return checkBox.isSelected(); }
+    public int getNumClusters() throws NumberFormatException { return Integer.parseInt(numClustersField.getText()); }
 }

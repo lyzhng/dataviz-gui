@@ -1,5 +1,6 @@
 package dataprocessors;
 
+import algorithms.DataSet;
 import javafx.geometry.Point2D;
 import javafx.scene.chart.XYChart;
 
@@ -30,8 +31,8 @@ public final class TSDProcessor {
         }
     }
 
-    private LinkedHashMap<String, String> dataLabels;
-    private LinkedHashMap<String, Point2D> dataPoints;
+    private Map<String, String> dataLabels;
+    private Map<String, Point2D> dataPoints;
     protected AtomicBoolean hadAnError;
     protected AtomicInteger lineNumber;
 
@@ -78,7 +79,7 @@ public final class TSDProcessor {
      * @param chart the specified chart
      */
 
-    void toChartData(XYChart<Number, Number> chart) {
+    public void toChartData(XYChart<Number, Number> chart) {
         Set<String> labels = new HashSet<>(dataLabels.values());
         for (String label : labels) {
             XYChart.Series<Number, Number> series = new XYChart.Series<>();
@@ -103,12 +104,16 @@ public final class TSDProcessor {
         return name;
     }
 
-    public LinkedHashMap<String, Point2D> getDataPoints() { return dataPoints; }
+    public Map<String, Point2D> getDataPoints() { return dataPoints; }
 
-    public LinkedHashMap<String, String> getDataLabels() { return dataLabels; }
+    public Map<String, String> getDataLabels() { return dataLabels; }
 
     public AtomicInteger getLineNumber() { return lineNumber; }
 
     private void resetLineNumber() { lineNumber.set(1); }
+
+    public void setDataLabels(Map<String, String> map) { this.dataLabels = map; }
+
+    public void setDataPoints(Map<String, Point2D> map) { this.dataPoints = map; }
 
 }

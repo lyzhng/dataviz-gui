@@ -69,7 +69,7 @@ public final class AppActions implements ActionComponent {
     @Override
     public void handleNewRequest() {
         try {
-            Algorithm alg = ((AppData) applicationTemplate.getDataComponent()).getRandomClassifier();
+            Algorithm alg = ((AppData) applicationTemplate.getDataComponent()).getAlgorithm();
             if (alg != null) {
                 if (!alg.finishedRunning()) {
                     ErrorDialog errorDialog = ErrorDialog.getDialog();
@@ -93,7 +93,7 @@ public final class AppActions implements ActionComponent {
 
     @Override
     public void handleSaveRequest() {
-        Algorithm alg = ((AppData) applicationTemplate.getDataComponent()).getRandomClassifier();
+        Algorithm alg = ((AppData) applicationTemplate.getDataComponent()).getAlgorithm();
         if (alg != null) {
             if (!alg.finishedRunning()) {
                 ErrorDialog errorDialog = ErrorDialog.getDialog();
@@ -163,7 +163,7 @@ public final class AppActions implements ActionComponent {
             AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
             AppData dataComponent = (AppData) applicationTemplate.getDataComponent();
 
-            Algorithm alg = ((AppData) applicationTemplate.getDataComponent()).getRandomClassifier();
+            Algorithm alg = ((AppData) applicationTemplate.getDataComponent()).getAlgorithm();
             if (alg != null) {
                 if (!alg.finishedRunning()) {
                     ErrorDialog errorDialog = ErrorDialog.getDialog();
@@ -216,7 +216,7 @@ public final class AppActions implements ActionComponent {
     public void handleExitRequest() {
         try {
             // add code for alg is running
-            Algorithm alg = ((AppData) applicationTemplate.getDataComponent()).getRandomClassifier();
+            Algorithm alg = ((AppData) applicationTemplate.getDataComponent()).getAlgorithm();
             ExitWhileUnfinishedDialog dialog = ExitWhileUnfinishedDialog.getDialog();
             if (alg != null) {
                 // algorithm has been selected & is not finished running
@@ -226,6 +226,7 @@ public final class AppActions implements ActionComponent {
                     String msg = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.EXIT_WHILE_RUNNING_WARNING.name());
                     dialog.show(title, msg);
                     ExitWhileUnfinishedDialog.Option selectedOption = dialog.getSelectedOption();
+                    if (selectedOption == null) { return; }
                     if (selectedOption.name().equalsIgnoreCase(ExitWhileUnfinishedDialog.Option.RETURN.name())) {
                         return;
                     }

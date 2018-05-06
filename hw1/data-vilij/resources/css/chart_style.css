@@ -21,14 +21,15 @@
     -fx-padding: 20px;
 }
 
-.chart-legend-item-symbol{
-    -fx-background-radius: 5px;
-}
-
 .chart-legend-item-symbol {
     -fx-background-radius: 10 10 10 10;
+    -fx-background-radius: 5px;
 }
 
 .chart-legend-item {
     -fx-text-fill: #191970;
+}
+
+.chart-series-line {
+    -fx-stroke: null;
 }

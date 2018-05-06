@@ -62,6 +62,7 @@ public final class AppUI extends UITemplate {
     private VBox vbox = new VBox();
     private RadioButton classificationAlg = new RadioButton();
     private RadioButton clusteringAlg = new RadioButton();
+    private RadioButton kmeansAlg = new RadioButton();
     private Button runButton = new Button();
     boolean selectedClusteringAlg = false;
     boolean selectedClassificationAlg = false;
@@ -145,6 +146,8 @@ public final class AppUI extends UITemplate {
                 vbox.getChildren().get(0).setVisible(false);
                 vbox.getChildren().get(1).setManaged(false);
                 vbox.getChildren().get(1).setVisible(false);
+                vbox.getChildren().get(2).setVisible(false);
+                vbox.getChildren().get(2).setManaged(false);
                 hideRunButton();
                 classificationAlg.setSelected(false);
                 clusteringAlg.setSelected(false);
@@ -201,7 +204,7 @@ public final class AppUI extends UITemplate {
     private void layout() {
         PropertyManager manager = applicationTemplate.manager;
         NumberAxis      xAxis   = new NumberAxis();
-        NumberAxis      yAxis   = new NumberAxis(-10, 10, 2);
+        NumberAxis      yAxis   = new NumberAxis();
         chart = new LineChart<>(xAxis, yAxis);
 
         chart.getStylesheets().add(getClass().getResource(manager.getPropertyValue(CHART_CSS.name())).toExternalForm());
@@ -247,6 +250,9 @@ public final class AppUI extends UITemplate {
         hbox = new HBox();
         hbox.getChildren().addAll(clusteringAlg, new Button(manager.getPropertyValue(CONFIGURATION.name())));
         vbox.getChildren().add(hbox);
+        hbox = new HBox();
+        hbox.getChildren().addAll(kmeansAlg, new Button(manager.getPropertyValue(CONFIGURATION.name())));
+        vbox.getChildren().add(hbox);
         leftPanel.getChildren().add(vbox);
 
         runButton.setText(manager.getPropertyValue(RUN.name()));
@@ -290,8 +296,10 @@ public final class AppUI extends UITemplate {
         ToggleGroup group = new ToggleGroup();
         classificationAlg.setText(applicationTemplate.manager.getPropertyValue(RANDOM_CLASSIFICATION.name()));
         clusteringAlg.setText(applicationTemplate.manager.getPropertyValue(RANDOM_CLUSTERING.name()));
+        kmeansAlg.setText("K Means Clustering");
         classificationAlg.setToggleGroup(group);
         clusteringAlg.setToggleGroup(group);
+        kmeansAlg.setToggleGroup(group);
         hideAlgorithmLists();
     }
 
@@ -302,12 +310,12 @@ public final class AppUI extends UITemplate {
 
     private void toggleScrnshotButton() {
         chart.getData().addListener((ListChangeListener<XYChart.Series<Number, Number>>) c -> {
-            RandomClassifier randomClassifier = ((AppData) applicationTemplate.getDataComponent()).getRandomClassifier();
-            if (chart.getData().isEmpty() && randomClassifier == null) {
+            Algorithm algorithm = ((AppData) applicationTemplate.getDataComponent()).getAlgorithm();
+            if (chart.getData().isEmpty() && algorithm == null) {
                 scrnshotButton.setDisable(true);
             } else if (chart.getData().isEmpty()) {
                 scrnshotButton.setDisable(true);
-            } else if (!chart.getData().isEmpty() && randomClassifier == null) {
+            } else if (!chart.getData().isEmpty() && algorithm == null) {
                 scrnshotButton.setDisable(false);
             }
         });
@@ -334,7 +342,7 @@ public final class AppUI extends UITemplate {
     }
 
     public void setTooltips() {
-        LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
+        Map<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
         for (XYChart.Series<Number, Number> series : chart.getData()) {
             for (XYChart.Data<Number, Number> data : series.getData()) {
                 Double xValue = data.getXValue().doubleValue();
@@ -424,6 +432,8 @@ public final class AppUI extends UITemplate {
                     vbox.getChildren().get(0).setManaged(true);
                     vbox.getChildren().get(1).setVisible(false);
                     vbox.getChildren().get(1).setManaged(false);
+                    vbox.getChildren().get(2).setVisible(false);
+                    vbox.getChildren().get(2).setVisible(false);
                     selectedClassificationAlg = true;
                 }
                 if (algorithmSel.getSelectionModel().getSelectedItem().equalsIgnoreCase(applicationTemplate.manager.getPropertyValue(CLUSTERING.name()))) {
@@ -431,6 +441,8 @@ public final class AppUI extends UITemplate {
                     vbox.getChildren().get(0).setManaged(false);
                     vbox.getChildren().get(1).setVisible(true);
                     vbox.getChildren().get(1).setManaged(true);
+                    vbox.getChildren().get(2).setManaged(true);
+                    vbox.getChildren().get(2).setVisible(true);
                     selectedClusteringAlg = true;
                 }
             }
@@ -451,7 +463,19 @@ public final class AppUI extends UITemplate {
         clusteringAlg.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (clusteringAlg.isSelected()) {
                 showRunButton();
-                runButton.setDisable(true);
+                if (!clusteringWindow.hasGivenConfigClustering())
+                    runButton.setDisable(true);
+                else
+                    runButton.setDisable(false);
+            }
+        });
+        kmeansAlg.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (kmeansAlg.isSelected()) {
+                showRunButton();
+                if (!clusteringWindow.hasGivenConfigClustering())
+                    runButton.setDisable(true);
+                else
+                    runButton.setDisable(false);
             }
         });
     }
@@ -461,6 +485,9 @@ public final class AppUI extends UITemplate {
             classificationWindow.init();
         });
         ((Button) ((HBox) vbox.getChildren().get(1)).getChildren().get(1)).setOnAction(event -> {
+            clusteringWindow.init();
+        });
+        ((Button) ((HBox) vbox.getChildren().get(2)).getChildren().get(1)).setOnAction(event -> {
             clusteringWindow.init();
         });
     }

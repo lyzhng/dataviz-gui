@@ -1,5 +1,6 @@
 package dataprocessors;
 
+import algorithms.Algorithm;
 import algorithms.DataSet;
 import algorithms.RandomClassifier;
 import javafx.beans.value.ChangeListener;
@@ -7,7 +8,9 @@ import javafx.beans.value.ObservableValue;
 import javafx.geometry.Point2D;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import settings.AppPropertyTypes;
 import ui.AppUI;
@@ -18,6 +21,8 @@ import vilij.settings.PropertyTypes;
 import vilij.templates.ApplicationTemplate;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -39,7 +44,7 @@ public class AppData implements DataComponent {
 
     private TSDProcessor        processor;
     private ApplicationTemplate applicationTemplate;
-    RandomClassifier randomClassifier;
+    Algorithm algorithm;
 
 
     public AppData(ApplicationTemplate applicationTemplate) {
@@ -62,22 +67,7 @@ public class AppData implements DataComponent {
             String lines = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.EMPTY_STRING.name());
             while ((lineRead = bufferedReader.readLine()) != null) {
                 lines += lineRead + System.lineSeparator();
-                // lineCounter++;
-                /* if (lineCounter == 10)
-                    textArea.setText(lines.substring(0, lines.length()-1));
-                    */
-                /* if (lineCounter > 10)
-                    moreThanTen = true; */
             }
-            /* if (moreThanTen) {
-                ErrorDialog errorDialog = ErrorDialog.getDialog();
-                String errDialogTitle = applicationTemplate.manager.getPropertyValue(LOAD_WARNING_TITLE.name());
-                String errDialogMsg = String.format(applicationTemplate.manager.getPropertyValue(OVER_TEN_LINES.name()), lineCounter);
-                errorDialog.show(errDialogTitle, errDialogMsg);
-                setTextAreaActions(Arrays.asList(lines.split(System.lineSeparator())));
-            } else {
-                textArea.setText(lines);
-            } */
             textArea.setText(lines);
             textArea.setEditable(false);
             textArea.getStylesheets().add((getClass().getResource(applicationTemplate.manager.getPropertyValue(TEXTAREA_CSS.name())).toExternalForm()));
@@ -152,13 +142,6 @@ public class AppData implements DataComponent {
             if (!(node.lookup(avgSeries) == node))
                 node.setStyle(nullStroke);
         });
-
-        /*
-       chart.lookupAll(".chart-series-line").forEach(node -> {
-            if (!(node.lookup("#avg-series") == node))
-                node.setStyle("-fx-stroke:null;");
-        });
-         */
         ((AppUI) applicationTemplate.getUIComponent()).setTooltips();
 
     }
@@ -187,81 +170,13 @@ public class AppData implements DataComponent {
      * the newValue should add on to the text area.
      */
 
-    private void setTextAreaActions(List<String> lines) {
-        // assuming that there exists > 10 lines, inputted
-        AtomicInteger index = new AtomicInteger(10);
-        TextArea textArea = ((AppUI) applicationTemplate.getUIComponent()).getTextArea();
-        if (textArea.getText().isEmpty()) return;
-        textArea.textProperty().addListener(((observable, oldValue, newValue) -> {
-            String[] before = oldValue.split(System.lineSeparator());
-            String[] after = newValue.split(System.lineSeparator());
-            if (before.length == 10 && after.length < 10) {
-                String s = "";
-                for (int i = 0; i < before.length - after.length; i++) {
-                    if (index.get() < lines.size()) {
-                        s += lines.get(index.get()) + System.lineSeparator();
-                        index.getAndIncrement();
-                     } else {
-                        break;
-                    }
-                }
-                if (s.length() > 0)
-                    textArea.setText(newValue + s.substring(0, s.length()-1));
-            }
-        }));
-    }
-
-    public LinkedHashMap<String, Point2D> getDataPoints() { return processor.getDataPoints(); }
-
-    /* private double findAvgY() {
-        LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
-        LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
-        double yTotal = 0.0d;
-        for (XYChart.Series<Number, Number> series : chart.getData()) {
-            for (XYChart.Data<Number, Number> data : series.getData()) {
-                yTotal += data.getYValue().doubleValue();
-            }
-        }
-        return yTotal/dataPoints.size();
-    } */
-
-    /* private void plotAvgY() {
-        LinkedHashMap<String, Point2D> dataPoints = ((AppData) applicationTemplate.getDataComponent()).getDataPoints();
-        LineChart<Number, Number> chart = ((AppUI) applicationTemplate.getUIComponent()).getChart();
-        List<Double> xValues = new ArrayList<>();
-        dataPoints.values().forEach(value -> xValues.add(value.getX()));
-        if (xValues.size() <= 1) return;
-        if (!xValues.isEmpty()) {
-            Double xMin = Collections.min(xValues);
-            Double xMax = Collections.max(xValues);
-            XYChart.Series<Number, Number> series = new XYChart.Series<>();
-            Point2D minPoint = new Point2D(xMin, findAvgY());
-            Point2D maxPoint = new Point2D(xMax, findAvgY());
-            series.getData().add(new XYChart.Data<>(minPoint.getX(), minPoint.getY()));
-            series.getData().add(new XYChart.Data<>(maxPoint.getX(), maxPoint.getY()));
-            chart.getData().add(series);
-            String avgSeriesNorm = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_NORM.name());
-            String chartSeriesLine = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_SERIES_LINE.name());
-            String strokeWidth = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_STROKE_WIDTH.name());
-            String chartLineSymbol = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_LINE_SYMBOL.name());
-            String bgColor = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_BG_COLOR.name());
-            series.getNode().setId(avgSeriesNorm);
-            series.setName(applicationTemplate.manager.getPropertyValue(AVG.name()));
-
-            series.getNode().lookup(chartSeriesLine).setStyle(strokeWidth);
-
-            series.getData().forEach(data ->
-                    data.getNode().lookup(chartLineSymbol).setStyle(bgColor));
-
-
-        }
-    } */
+    public Map<String, Point2D> getDataPoints() { return processor.getDataPoints(); }
 
     public AtomicBoolean hadAnError() { return processor.hadAnError; }
 
     public TSDProcessor getProcessor() { return processor; }
 
-    public LinkedHashMap<String, String> getDataLabels() { return processor.getDataLabels(); }
+    public Map<String, String> getDataLabels() { return processor.getDataLabels(); }
 
     public int getNumberOfLabels() {
         Set<String> labels = new LinkedHashSet<>(getDataLabels().values());
@@ -280,17 +195,60 @@ public class AppData implements DataComponent {
 
     public void setRunButtonAction() {
         AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
-        ConfigurationWindow configurationWindow = uiComponent.getClassificationWindow();
+        ConfigurationWindow classificationWindow = uiComponent.getClassificationWindow();
+        ConfigurationWindow clusteringWindow = uiComponent.getClusteringWindow();
         DataSet dataset = DataSet.fromTSDProcessor(uiComponent.getCurrentText());
-        if (randomClassifier != null && randomClassifier.finishedRunning()) {
+        if (algorithm != null && algorithm.finishedRunning()) {
             uiComponent.clearChart();
             displayData();
         }
         // only after the run button is clicked do i have configuration window's data
-        // therefore instantiation of randomclassifer is here
-        this.randomClassifier = new RandomClassifier(dataset, applicationTemplate, configurationWindow.getMaxIter(), configurationWindow.getUpdateInterval(), configurationWindow.isContinuousRun());
-        new Thread(randomClassifier).start();
+        // /Users/Lily/IdeaProjects/homework5/hw1/data-vilij/src/algorithms
+        try {
+            String filename = getAlgorithmFile();
+            Class<?> clazz = Class.forName(filename);
+            if (filename.contains("Clusterer")) {
+                Constructor<?> konstructor = clazz.getDeclaredConstructor(DataSet.class, ApplicationTemplate.class, int.class, int.class, boolean.class, int.class);
+                Algorithm algorithm = (Algorithm) (konstructor.newInstance(dataset, applicationTemplate, clusteringWindow.getMaxIter(), clusteringWindow.getUpdateInterval(), clusteringWindow.isContinuousRun(), clusteringWindow.getNumClusters()));
+                this.algorithm = algorithm;
+            }
+            else if (filename.contains("Classifier")) {
+                Constructor<?> konstructor = clazz.getDeclaredConstructor(DataSet.class, ApplicationTemplate.class, int.class, int.class, boolean.class);
+                Algorithm algorithm = (Algorithm) (konstructor.newInstance(dataset, applicationTemplate, classificationWindow.getMaxIter(), classificationWindow.getUpdateInterval(), classificationWindow.isContinuousRun()));
+                this.algorithm = algorithm;
+            }
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+        new Thread(algorithm).start();
     }
 
-    public RandomClassifier getRandomClassifier() { return randomClassifier; }
+    public String getAlgorithmFile() {
+        AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
+        File file = new File("hw1/data-vilij/src/algorithms");
+        Map<String, String> fileMap = new LinkedHashMap<>();
+        for (File f : file.listFiles()) {
+            String filePath = f.toString().replace("hw1/data-vilij/src/", "").replace(".java", "").replace("/", ".");
+            fileMap.put(f.getName().replace(".java", ""), filePath);
+        }
+        String algorithmName = "";
+        if (((RadioButton) ((HBox) uiComponent.getVbox().getChildren().get(0)).getChildren().get(0)).isSelected()) { // random classifier is selected
+            algorithmName = "RandomClassifier"; // case needs to work for KMeansClusterer too
+        } else if (((RadioButton) ((HBox) uiComponent.getVbox().getChildren().get(1)).getChildren().get(0)).isSelected()) { // random clustering is selected
+            algorithmName = "RandomClusterer";
+        } else if (((RadioButton) ((HBox) uiComponent.getVbox().getChildren().get(2)).getChildren().get(0)).isSelected()) {
+            algorithmName = "KMeansClusterer";
+        }
+        String name = "";
+        for (String filename : fileMap.keySet()) {
+            if (filename.equals(algorithmName)) {
+                name = filename;
+                break;
+            }
+        }
+        return fileMap.get(name);
+    }
+
+    public Algorithm getAlgorithm() { return algorithm; }
 }

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
@@ -50,8 +51,8 @@ public class DataSet {
 
     /** Creates an empty dataset. */
     public DataSet() {
-        labels = new HashMap<>();
-        locations = new HashMap<>();
+        labels = new LinkedHashMap<>();
+        locations = new LinkedHashMap<>();
     }
 
     public DataSet(TSDProcessor processor) {
