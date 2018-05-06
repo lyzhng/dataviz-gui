@@ -119,7 +119,7 @@ public class AppData implements DataComponent {
         // confirmation dialog elsewhere in a different way.
         if (dataFilePath != null) {
             try (PrintWriter writer = new PrintWriter(Files.newOutputStream(dataFilePath))) {
-                writer.write(((AppUI) applicationTemplate.getUIComponent()).getCurrentText());
+                writer.write(((AppUI) applicationTemplate.getUIComponent()).getTextArea().getText());
             } catch (IOException e) {
                 System.err.println(e.getMessage());
             }
@@ -194,51 +194,60 @@ public class AppData implements DataComponent {
     }
 
     public void setRunButtonAction() {
+        final String CLASSIFIER = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CLASSIFIER.name());
+        final String CLUSTERER = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CLUSTERER.name());
         AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
         ConfigurationWindow classificationWindow = uiComponent.getClassificationWindow();
         ConfigurationWindow clusteringWindow = uiComponent.getClusteringWindow();
-        DataSet dataset = DataSet.fromTSDProcessor(uiComponent.getCurrentText());
+        DataSet dataset = DataSet.fromTSDProcessor(uiComponent.getTextArea().getText());
         if (algorithm != null && algorithm.finishedRunning()) {
             uiComponent.clearChart();
             displayData();
         }
-        // only after the run button is clicked do i have configuration window's data
-        // /Users/Lily/IdeaProjects/homework5/hw1/data-vilij/src/algorithms
+        uiComponent.setSelectedClusteringAlg(false);
+        uiComponent.setSelectedClassificationAlg(false);
         try {
-            String filename = getAlgorithmFile();
-            Class<?> clazz = Class.forName(filename);
-            if (filename.contains("Clusterer")) {
-                Constructor<?> konstructor = clazz.getDeclaredConstructor(DataSet.class, ApplicationTemplate.class, int.class, int.class, boolean.class, int.class);
-                Algorithm algorithm = (Algorithm) (konstructor.newInstance(dataset, applicationTemplate, clusteringWindow.getMaxIter(), clusteringWindow.getUpdateInterval(), clusteringWindow.isContinuousRun(), clusteringWindow.getNumClusters()));
-                this.algorithm = algorithm;
-            }
-            else if (filename.contains("Classifier")) {
-                Constructor<?> konstructor = clazz.getDeclaredConstructor(DataSet.class, ApplicationTemplate.class, int.class, int.class, boolean.class);
-                Algorithm algorithm = (Algorithm) (konstructor.newInstance(dataset, applicationTemplate, classificationWindow.getMaxIter(), classificationWindow.getUpdateInterval(), classificationWindow.isContinuousRun()));
-                this.algorithm = algorithm;
-            }
-        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
+            clear();
+            String text = uiComponent.getTextArea().getText();
+            System.out.println(text);
+            processor.processString(text);
+            try {
+                String filename = getAlgorithmFile();
+                Class<?> clazz = Class.forName(filename);
+                if (filename.contains(CLUSTERER)) {
+                    Constructor<?> konstructor = clazz.getDeclaredConstructor(DataSet.class, ApplicationTemplate.class, int.class, int.class, boolean.class, int.class);
+                    Algorithm algorithm = (Algorithm) (konstructor.newInstance(dataset, applicationTemplate, clusteringWindow.getMaxIter(), clusteringWindow.getUpdateInterval(), clusteringWindow.isContinuousRun(), clusteringWindow.getNumClusters()));
+                    this.algorithm = algorithm;
+                } else if (filename.contains(CLASSIFIER)) {
+                    Constructor<?> konstructor = clazz.getDeclaredConstructor(DataSet.class, ApplicationTemplate.class, int.class, int.class, boolean.class);
+                    Algorithm algorithm = (Algorithm) (konstructor.newInstance(dataset, applicationTemplate, classificationWindow.getMaxIter(), classificationWindow.getUpdateInterval(), classificationWindow.isContinuousRun()));
+                    this.algorithm = algorithm;
+                }
+            } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) { }
 
-        new Thread(algorithm).start();
+            new Thread(algorithm).start();
+        } catch (Exception e) { /* ignore */ }
     }
 
     public String getAlgorithmFile() {
+
+        final String JAVA_EXT = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.JAVA_EXT.name());
+        final String ALGORITHMS_REL_PATH = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.ALGORITHMS_REL_PATH.name());
+        final String ALGORITHMS_REPLACE = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.ALGORITHMS_REPLACE.name());
         AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
-        File file = new File("hw1/data-vilij/src/algorithms");
+        File file = new File(ALGORITHMS_REL_PATH);
         Map<String, String> fileMap = new LinkedHashMap<>();
         for (File f : file.listFiles()) {
-            String filePath = f.toString().replace("hw1/data-vilij/src/", "").replace(".java", "").replace("/", ".");
-            fileMap.put(f.getName().replace(".java", ""), filePath);
+            String filePath = f.toString().replace(ALGORITHMS_REPLACE, "").replace(JAVA_EXT, "").replace("/", ".");
+            fileMap.put(f.getName().replace(JAVA_EXT, ""), filePath);
         }
         String algorithmName = "";
         if (((RadioButton) ((HBox) uiComponent.getVbox().getChildren().get(0)).getChildren().get(0)).isSelected()) { // random classifier is selected
-            algorithmName = "RandomClassifier"; // case needs to work for KMeansClusterer too
+            algorithmName = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.RANDOMCLASSIFIER.name()); // case needs to work for KMeansClusterer too
         } else if (((RadioButton) ((HBox) uiComponent.getVbox().getChildren().get(1)).getChildren().get(0)).isSelected()) { // random clustering is selected
-            algorithmName = "RandomClusterer";
+            algorithmName = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.RANDOMCLUSTERER.name());
         } else if (((RadioButton) ((HBox) uiComponent.getVbox().getChildren().get(2)).getChildren().get(0)).isSelected()) {
-            algorithmName = "KMeansClusterer";
+            algorithmName = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.KMEANSCLUSTERER.name());
         }
         String name = "";
         for (String filename : fileMap.keySet()) {

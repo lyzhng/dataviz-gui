@@ -65,12 +65,22 @@ public class KMeansClusterer extends Clusterer {
     @Override
     public void run() {
         Platform.setImplicitExit(false);
+        Platform.runLater(() -> {
+            AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
+            try {
+                uiComponent.clearChart();
+                ((AppData) applicationTemplate.getDataComponent()).getProcessor().processString(uiComponent.getTextArea().getText());
+                ((AppData) applicationTemplate.getDataComponent()).getProcessor().toChartData(uiComponent.getChart());
+                uiComponent.getChart().getData().forEach(ser -> {
+                    ser.getNode().setStyle("-fx-stroke: null");
+                });
+            } catch (Exception e) { }
+        });
         initializeCentroids();
-        if (tocontinue.get()) {
+        if (tocontinue.get())
             continuousrun();
-        } else {
+        else
             manualrun();
-        }
     }
 
     private void continuousrun() {
@@ -93,6 +103,9 @@ public class KMeansClusterer extends Clusterer {
                     dataComponent.getProcessor().setDataLabels(dataset.getLabels());
                     dataComponent.getProcessor().setDataPoints(dataset.getLocations());
                     dataComponent.getProcessor().toChartData(uiComponent.getChart());
+                    uiComponent.getChart().getData().forEach(ser -> {
+                        ser.getNode().setStyle("-fx-stroke: null");
+                    });
                 });
                 try {
                     Thread.sleep(500);
@@ -114,16 +127,6 @@ public class KMeansClusterer extends Clusterer {
         finishedRunning.set(true);
     }
 
-    private void manualrun() {
-        if (currentIteration++ < maxIterations && !finishedRunning()) {
-            assignLabels();
-            recomputeCentroids();
-        } else {
-            currentIteration = 0;
-            finishedRunning.set(true);
-        }
-    }
-
     private void initializeCentroids() {
         Set<String> chosen = new HashSet<>();
         List<String> instanceNames = new ArrayList<>(dataset.getLabels().keySet());
@@ -135,7 +138,6 @@ public class KMeansClusterer extends Clusterer {
             chosen.add(instanceNames.get(i));
         }
         centroids = chosen.stream().map(name -> dataset.getLocations().get(name)).collect(Collectors.toList());
-        tocontinue.set(true);
     }
 
     private void assignLabels() {
@@ -170,6 +172,59 @@ public class KMeansClusterer extends Clusterer {
                 centroids.set(i, newCentroid);
             }
         });
+    }
+
+    private void manualrun() {
+        AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
+        AppData dataComponent = ((AppData) applicationTemplate.getDataComponent());
+        if (currentIteration < maxIterations && updateInterval <= maxIterations) {
+            try {
+                assignLabels();
+                recomputeCentroids();
+                finishedRunning.set(false);
+                currentIteration += updateInterval;
+                Platform.runLater(() -> {
+                    uiComponent.getScrnshotButton().setDisable(true);
+                    uiComponent.getRunButton().setDisable(true);
+                    uiComponent.getToggle().setDisable(true);
+                    ((Button) ((HBox) uiComponent.getVbox().getChildren().get(2)).getChildren().get(1)).setDisable(true);
+                });
+                System.out.printf("Iteration number %d%n", currentIteration);
+                Platform.runLater(() -> {
+                    uiComponent.clearChart();
+                    dataComponent.getProcessor().setDataLabels(dataset.getLabels());
+                    dataComponent.getProcessor().setDataPoints(dataset.getLocations());
+                    dataComponent.getProcessor().toChartData(uiComponent.getChart());
+                    uiComponent.getChart().getData().forEach(ser -> {
+                        ser.getNode().setStyle("-fx-stroke: null");
+                    });
+                });
+                Thread.sleep(500);
+                if (currentIteration + updateInterval > maxIterations) { // on last iteration
+                    Platform.runLater(() -> {
+                        uiComponent.getScrnshotButton().setDisable(false);
+                        uiComponent.getToggle().setDisable(false);
+                        uiComponent.getAlgorithmSel().getSelectionModel().clearSelection();
+                        uiComponent.getAlgorithmSel().setManaged(true);
+                        uiComponent.getAlgorithmSel().setVisible(true);
+                        ((RadioButton) ((HBox) uiComponent.getVbox().getChildren().get(2)).getChildren().get(0)).setSelected(false);
+                        uiComponent.getVbox().setVisible(false);
+                        uiComponent.getVbox().setManaged(false);
+                        ((Button) ((HBox) uiComponent.getVbox().getChildren().get(2)).getChildren().get(1)).setDisable(false);
+                        uiComponent.hideRunButton();
+                    });
+                    currentIteration = 0;
+                    finishedRunning.set(true);
+                    return;
+                } else {
+                    Platform.runLater(() -> {
+                        uiComponent.getScrnshotButton().setDisable(false);
+                        uiComponent.getRunButton().setDisable(false);
+                    });
+                }
+            } catch (InterruptedException e) {
+            }
+        }
     }
 
     private static double computeDistance(Point2D p, Point2D q) {

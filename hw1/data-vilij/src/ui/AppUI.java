@@ -151,6 +151,7 @@ public final class AppUI extends UITemplate {
                 hideRunButton();
                 classificationAlg.setSelected(false);
                 clusteringAlg.setSelected(false);
+                kmeansAlg.setSelected(false);
                 selectedClusteringAlg = false;
                 selectedClassificationAlg = false;
                 hideAlgorithmTypes();
@@ -187,6 +188,7 @@ public final class AppUI extends UITemplate {
         hideRunButton();
         classificationAlg.setSelected(false);
         clusteringAlg.setSelected(false);
+        kmeansAlg.setSelected(false);
         selectedClusteringAlg = false;
         selectedClassificationAlg = false;
     }
@@ -296,7 +298,7 @@ public final class AppUI extends UITemplate {
         ToggleGroup group = new ToggleGroup();
         classificationAlg.setText(applicationTemplate.manager.getPropertyValue(RANDOM_CLASSIFICATION.name()));
         clusteringAlg.setText(applicationTemplate.manager.getPropertyValue(RANDOM_CLUSTERING.name()));
-        kmeansAlg.setText("K Means Clustering");
+        kmeansAlg.setText(applicationTemplate.manager.getPropertyValue(K_MEANS_CLUSTERING.name()));
         classificationAlg.setToggleGroup(group);
         clusteringAlg.setToggleGroup(group);
         kmeansAlg.setToggleGroup(group);
@@ -364,7 +366,6 @@ public final class AppUI extends UITemplate {
     public TextArea getTextArea() { return textArea; }
     public void clearChart() { chart.getData().clear(); }
     private void resetToggleText() { toggle.setText(applicationTemplate.manager.getPropertyValue(DONE.name())); }
-    public String getCurrentText() { return textArea.getText(); }
 
     public void hideStats() {
         statsText.setVisible(false);
@@ -509,6 +510,8 @@ public final class AppUI extends UITemplate {
     public RadioButton getClassificationAlg() { return classificationAlg; }
     public RadioButton getClusteringAlg() { return clusteringAlg; }
     public VBox getVbox() { return vbox; }
+    public void setSelectedClusteringAlg(boolean b) { this.selectedClusteringAlg = b; }
+    public void setSelectedClassificationAlg(boolean b) { this.selectedClassificationAlg = b; }
 
     private void handleXButton() {
         primaryStage.setOnCloseRequest(event -> System.exit(0));

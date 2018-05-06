@@ -1,5 +1,6 @@
 package ui;
 
+import dataprocessors.AppData;
 import javafx.event.Event;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -23,8 +24,7 @@ import static settings.AppPropertyTypes.*;
 /**
  * @author The author of this document is Lily Zhong.
  */
-public class ConfigurationWindow extends Stage
-{
+public class ConfigurationWindow extends Stage {
     ApplicationTemplate applicationTemplate;
 
     private Stage window = new Stage();
@@ -66,12 +66,18 @@ public class ConfigurationWindow extends Stage
         hBox.setMaxWidth(300);
         vBox.getChildren().add(hBox);
 
+        numClustersField.setPromptText(manager.getPropertyValue(FIELD_PROMPT_TEXT.name()));
+        hBox = new HBox(10);
+        hBox.getChildren().addAll(new Label(manager.getPropertyValue(NUM_CLUSTERS.name())), numClustersField);
+        hBox.setMaxWidth(300);
+        vBox.getChildren().add(hBox);
+
         if ((((AppUI) applicationTemplate.getUIComponent()).isSelectedClusteringAlg())) {
-            numClustersField.setPromptText(manager.getPropertyValue(FIELD_PROMPT_TEXT.name()));
-            hBox = new HBox(10);
-            hBox.getChildren().addAll(new Label(manager.getPropertyValue(NUM_CLUSTERS.name())), numClustersField);
-            hBox.setMaxWidth(300);
-            vBox.getChildren().add(hBox);
+            ((HBox) vBox.getChildren().get(2)).setManaged(true);
+            ((HBox) vBox.getChildren().get(2)).setVisible(true);
+        } else {
+            ((HBox) vBox.getChildren().get(2)).setManaged(false);
+            ((HBox) vBox.getChildren().get(2)).setVisible(false);
         }
 
         hBox = new HBox(10);
@@ -101,14 +107,14 @@ public class ConfigurationWindow extends Stage
             // case for CLASSIFICATION
             boolean validForClassification =
                     iterField.getText().matches("\\d+") &&
-                    Integer.parseInt(iterField.getText()) > 0 &&
-                    intervalField.getText().matches("\\d+") &&
-                    Integer.parseInt(intervalField.getText()) > 0;
+                            Integer.parseInt(iterField.getText()) > 0 &&
+                            intervalField.getText().matches("\\d+") &&
+                            Integer.parseInt(intervalField.getText()) > 0;
             // case for CLUSTERING
             boolean validForClustering =
                     validForClassification &&
-                    numClustersField.getText().matches("\\d+") &&
-                    Integer.parseInt(numClustersField.getText()) > 0;
+                            numClustersField.getText().matches("\\d+") &&
+                            Integer.parseInt(numClustersField.getText()) > 0;
 
             if (validForClustering && uiComponent.isSelectedClusteringAlg() && getUpdateInterval() <= getMaxIter()) {
                 // load the same settings from clusteringPref
@@ -124,8 +130,7 @@ public class ConfigurationWindow extends Stage
                     clusteringPref.clear();
                 }
                 uiComponent.getRunButton().setDisable(false);
-            }
-            else if (validForClassification && uiComponent.isSelectedClassificationAlg() && getUpdateInterval() <= getMaxIter()) {
+            } else if (validForClassification && uiComponent.isSelectedClassificationAlg() && getUpdateInterval() <= getMaxIter()) {
                 hasGivenConfigClassification = true;
                 // load the same settings from classificationPref
                 classificationPref.add(iterField.getText());
@@ -138,8 +143,7 @@ public class ConfigurationWindow extends Stage
                     classificationPref.clear();
                 }
                 uiComponent.getRunButton().setDisable(false);
-            }
-            else {
+            } else {
                 window.hide();
                 ErrorDialog errorDialog = ErrorDialog.getDialog();
                 String configErrorTitle = applicationTemplate.manager.getPropertyValue(CONFIG_ERROR_TITLE.name());
@@ -149,45 +153,15 @@ public class ConfigurationWindow extends Stage
 
                 if (uiComponent.isSelectedClassificationAlg()) {
                     hasGivenConfigClassification = true;
+                    intervalField.setText(defaultValue);
+                    iterField.setText(defaultValue);
+                    checkBox.setSelected(false);
                 } else if (uiComponent.isSelectedClusteringAlg()) {
                     hasGivenConfigClustering = true;
-                }
-
-                if (iterField.getText().matches("\\d+") && Integer.parseInt(iterField.getText()) > 0 &&
-                        intervalField.getText().matches("\\d+") && Integer.parseInt(intervalField.getText()) > 0 &&
-                        Integer.parseInt(intervalField.getText()) > Integer.parseInt(iterField.getText())) {
-                    intervalField.setText(iterField.getText());
-                }
-
-                if (!iterField.getText().matches("\\d+")) {
-                    iterField.setText(defaultValue);
-                } else if (iterField.getText().matches("\\d+") && Integer.parseInt(iterField.getText()) <= 0) {
-                    int num = (int) (Math.floor(Integer.parseInt(iterField.getText())));
-                    if (num == 0) num = 1;
-                    iterField.setText(String.valueOf(num));
-                }
-                if (!intervalField.getText().matches("\\d+")) {
                     intervalField.setText(defaultValue);
-                } else if (intervalField.getText().matches("\\d+") && Integer.parseInt(intervalField.getText()) <= 0) {
-                    int num = (int) (Math.floor(Integer.parseInt(intervalField.getText())));
-                    if (num == 0) num = 1;
-                    intervalField.setText(String.valueOf(num));
-                }
-
-                if (iterField.getText().matches("\\d+") && Integer.parseInt(iterField.getText()) > 0 &&
-                        intervalField.getText().matches("\\d+") && Integer.parseInt(intervalField.getText()) > 0 &&
-                        Integer.parseInt(intervalField.getText()) > Integer.parseInt(iterField.getText())) {
-                    intervalField.setText(iterField.getText());
-                }
-
-                if (uiComponent.isSelectedClusteringAlg()) {
-                    if (!numClustersField.getText().matches("\\d+")) {
-                        numClustersField.setText(defaultValue);
-                    } else if (numClustersField.getText().matches("\\d+") && Integer.parseInt(numClustersField.getText()) <= 0) {
-                        int num = (int) (Math.floor(Integer.parseInt(numClustersField.getText())));
-                        if (num == 0) num = 1;
-                        numClustersField.setText(String.valueOf(num));
-                    }
+                    iterField.setText(defaultValue);
+                    checkBox.setSelected(false);
+                    numClustersField.setText(defaultValue);
                 }
             }
             uiComponent.getRunButton().setDisable(false);
@@ -200,12 +174,28 @@ public class ConfigurationWindow extends Stage
         window.setOnCloseRequest(Event::consume);
     }
 
-    public boolean hasGivenConfigClassification() { return hasGivenConfigClassification; }
-    public boolean hasGivenConfigClustering() { return hasGivenConfigClustering; }
+    public boolean hasGivenConfigClassification() {
+        return hasGivenConfigClassification;
+    }
+
+    public boolean hasGivenConfigClustering() {
+        return hasGivenConfigClustering;
+    }
 
     // ok is pressed. data validation is through.
-    public int getMaxIter() throws NumberFormatException { return Integer.parseInt(iterField.getText()); }
-    public int getUpdateInterval() throws NumberFormatException { return Integer.parseInt(intervalField.getText()); }
-    public boolean isContinuousRun() { return checkBox.isSelected(); }
-    public int getNumClusters() throws NumberFormatException { return Integer.parseInt(numClustersField.getText()); }
+    public int getMaxIter() throws NumberFormatException {
+        return Integer.parseInt(iterField.getText());
+    }
+
+    public int getUpdateInterval() throws NumberFormatException {
+        return Integer.parseInt(intervalField.getText());
+    }
+
+    public boolean isContinuousRun() {
+        return checkBox.isSelected();
+    }
+
+    public int getNumClusters() throws NumberFormatException {
+        return Integer.parseInt(numClustersField.getText());
+    }
 }

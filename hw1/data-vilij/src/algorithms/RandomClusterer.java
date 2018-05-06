@@ -68,6 +68,7 @@ public class RandomClusterer extends Clusterer {
 
     @Override
     public void run() {
+        Platform.setImplicitExit(false);
         if (tocontinue.get()) {
             continuousrun();
         } else {
@@ -97,6 +98,9 @@ public class RandomClusterer extends Clusterer {
                         dataComponent.getProcessor().setDataLabels(updatedData.getLabels());
                         dataComponent.getProcessor().setDataPoints(updatedData.getLocations());
                         dataComponent.getProcessor().toChartData(uiComponent.getChart());
+                        uiComponent.getChart().getData().forEach(ser -> {
+                            ser.getNode().setStyle("-fx-stroke: null");
+                        });
                     } finally {
                         lock.unlock();
                     }
@@ -124,11 +128,8 @@ public class RandomClusterer extends Clusterer {
                         uiComponent.getRunButton().setDisable(false);
                     });
                 }
-            } catch (InterruptedException e) {
-
-            }
+            } catch (InterruptedException e) { }
         }
-
     }
 
     private void continuousrun() {
@@ -154,13 +155,10 @@ public class RandomClusterer extends Clusterer {
                             uiComponent.clearChart();
                             dataComponent.getProcessor().setDataLabels(updatedDataSet.getLabels());
                             dataComponent.getProcessor().setDataPoints(updatedDataSet.getLocations());
-                            for (LineChart.Series<Number, Number> series : uiComponent.getChart().getData()) {
-                                System.out.println(series);
-                                System.out.println(series.getNode());
-                                series.getNode().lookup(".chart-series-line").setStyle("-fx-stroke:null");
-                            }
                             dataComponent.getProcessor().toChartData(uiComponent.getChart());
-
+                            uiComponent.getChart().getData().forEach(ser -> {
+                                ser.getNode().setStyle("-fx-stroke: null");
+                            });
                         } finally {
                             lock.unlock();
                         }
@@ -182,8 +180,6 @@ public class RandomClusterer extends Clusterer {
             });
             finishedRunning.set(true);
         }
-        catch (InterruptedException e) {
-
-        }
+        catch (InterruptedException e) { }
     }
 }

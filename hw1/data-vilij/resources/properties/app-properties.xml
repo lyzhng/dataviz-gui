@@ -93,6 +93,12 @@ functionality within the main workspace. -->
         <property name="RANDOMCLASSIFIER" value="RandomClassifier"/>
         <property name="RANDOMCLUSTERER" value="RandomClusterer"/>
         <property name="KMEANSCLUSTERER" value="KMeansClusterer"/>
+        <property name="JAVA_EXT" value=".java" />
+        <property name="ALGORITHMS_REL_PATH" value="hw1/data-vilij/src/algorithms" />
+        <property name="ALGORITHMS_REPLACE" value="hw1/data-vilij/src/" />
+        <property name="CLASSIFIER" value="Classifier" />
+        <property name="CLUSTERER" value="Clusterer" />
+        <property name="K_MEANS_CLUSTERING" value="K Means Clustering" />
     </property_list>
     <property_options_list/>
 </properties>

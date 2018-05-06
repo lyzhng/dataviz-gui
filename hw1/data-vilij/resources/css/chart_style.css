@@ -29,7 +29,3 @@
 .chart-legend-item {
     -fx-text-fill: #191970;
 }
-
-.chart-series-line {
-    -fx-stroke: null;
-}

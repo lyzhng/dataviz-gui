@@ -55,12 +55,6 @@ public class DataSet {
         locations = new LinkedHashMap<>();
     }
 
-    public DataSet(TSDProcessor processor) {
-        labels = new HashMap<>();
-        locations = new HashMap<>();
-        this.processor = processor;
-    }
-
     public Map<String, String> getLabels()     { return labels; }
 
     public Map<String, Point2D> getLocations() { return locations; }

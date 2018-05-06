@@ -74,6 +74,18 @@ public class RandomClassifier extends Classifier {
     @Override
     public void run() {
         // case for continuous run
+        Platform.setImplicitExit(false);
+        Platform.runLater(() -> {
+            AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
+            try {
+                uiComponent.clearChart();
+                ((AppData) applicationTemplate.getDataComponent()).getProcessor().processString(uiComponent.getTextArea().getText());
+                ((AppData) applicationTemplate.getDataComponent()).getProcessor().toChartData(uiComponent.getChart());
+                uiComponent.getChart().getData().forEach(ser -> {
+                    ser.getNode().setStyle("-fx-stroke: null");
+                });
+            } catch (Exception e) { }
+        });
         if (tocontinue())
             continuousrun();
         else
@@ -113,14 +125,10 @@ public class RandomClassifier extends Classifier {
                     String chartLineSymbol = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.CHART_LINE_SYMBOL.name());
                     String bgColor = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.AVG_SERIES_BG_COLOR.name());
                     Platform.runLater(() -> {
-                        lock.lock();
-                        try {
-                            uiComponent.getChart().getData().add(series);
-                            series.getNode().lookup(chartSeriesLine).setStyle(strokeWidth);
-                            series.getData().forEach(data -> data.getNode().lookup(chartLineSymbol).setStyle(bgColor));
-                        } finally {
-                            lock.unlock();
-                        }
+                        uiComponent.getChart().getData().add(series);
+                        // have color
+                        series.getNode().lookup(chartSeriesLine).setStyle(strokeWidth);
+                        series.getData().forEach(data -> data.getNode().lookup(chartLineSymbol).setStyle(bgColor));
                     });
                     Thread.sleep(500);
                     if (i + updateInterval <= maxIterations) {
@@ -134,12 +142,6 @@ public class RandomClassifier extends Classifier {
                         });
                     }
                 }
-
-                /* if (i > maxIterations * .6 && RAND.nextDouble() < 0.05) {
-                    System.out.printf("Iteration number %d: ", i);
-                    flush();
-                    break;
-                } */
             }
             Platform.runLater(() -> {
                 uiComponent.getScrnshotButton().setDisable(false);
@@ -154,8 +156,7 @@ public class RandomClassifier extends Classifier {
                 uiComponent.hideRunButton();
             });
             finishedRunning.set(true);
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
 
         }
     }
@@ -196,6 +197,7 @@ public class RandomClassifier extends Classifier {
                         if (uiComponent.getChart().getData().contains(prevSeriesRef.get()))
                             uiComponent.getChart().getData().remove(prevSeriesRef.get());
                         uiComponent.getChart().getData().add(series);
+                        // have color
                         prevSeriesRef.set(series);
                         series.getNode().lookup(chartSeriesLine).setStyle(strokeWidth);
                         series.getData().forEach(data -> data.getNode().lookup(chartLineSymbol).setStyle(bgColor));
@@ -226,9 +228,7 @@ public class RandomClassifier extends Classifier {
                         uiComponent.getRunButton().setDisable(false);
                     });
                 }
-            } catch (InterruptedException e) {
-
-            }
+            } catch (InterruptedException e) { /* do nothing */ }
         }
     }
 
@@ -237,16 +237,20 @@ public class RandomClassifier extends Classifier {
         System.out.printf("%d\t%d\t%d%n", output.get(0), output.get(1), output.get(2));
     }
 
-    protected void resetCurrentIteration() { currentIteration = 0; }
+    protected void resetCurrentIteration() {
+        currentIteration = 0;
+    }
 
     private double getYValue(double xvalue) {
-        int xCoefficient =  new Long(-1 * Math.round((2 * RAND.nextDouble() - 1) * 10)).intValue();
+        int xCoefficient = new Long(-1 * Math.round((2 * RAND.nextDouble() - 1) * 10)).intValue();
         int yCoefficient = 10;
-        int constant     = RAND.nextInt(11);
+        int constant = RAND.nextInt(11);
         output = Arrays.asList(xCoefficient, yCoefficient, constant);
         return (constant - xCoefficient * xvalue) / yCoefficient;
     }
 
     @Override
-    public boolean finishedRunning() { return finishedRunning.get(); }
+    public boolean finishedRunning() {
+        return finishedRunning.get();
+    }
 }
