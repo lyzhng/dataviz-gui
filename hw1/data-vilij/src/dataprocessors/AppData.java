@@ -2,12 +2,8 @@ package dataprocessors;
 
 import algorithms.Algorithm;
 import algorithms.DataSet;
-import algorithms.RandomClassifier;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.geometry.Point2D;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
@@ -28,8 +24,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 import static settings.AppPropertyTypes.*;
@@ -163,12 +157,6 @@ public class AppData implements DataComponent {
         return -1;
     }
 
-    /**
-     * Helper method for loadData.
-     * When there are fewer than 10 lines in oldValue,
-     * the newValue should add on to the text area.
-     */
-
     public Map<String, Point2D> getDataPoints() { return processor.getDataPoints(); }
 
     public AtomicBoolean hadAnError() { return processor.hadAnError; }
@@ -250,6 +238,7 @@ public class AppData implements DataComponent {
         } else if (((RadioButton) ((HBox) uiComponent.getVbox().getChildren().get(2)).getChildren().get(0)).isSelected()) {
             algorithmName = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.KMEANSCLUSTERER.name());
         }
+
         String name = "";
         for (String filename : fileMap.keySet()) {
             if (filename.equals(algorithmName)) {
@@ -261,4 +250,5 @@ public class AppData implements DataComponent {
     }
 
     public Algorithm getAlgorithm() { return algorithm; }
+
 }

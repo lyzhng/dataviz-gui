@@ -10,9 +10,6 @@ import settings.AppPropertyTypes;
 import ui.AppUI;
 import vilij.templates.ApplicationTemplate;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;

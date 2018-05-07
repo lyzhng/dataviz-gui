@@ -73,7 +73,6 @@ public class RandomClassifier extends Classifier {
 
     @Override
     public void run() {
-        // case for continuous run
         Platform.setImplicitExit(false);
         Platform.runLater(() -> {
             AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
