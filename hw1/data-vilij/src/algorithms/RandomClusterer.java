@@ -42,16 +42,7 @@ public class RandomClusterer extends Clusterer {
     }
 
     public DataSet newLabels() {
-        List<String> names = new ArrayList<>(dataset.getLabels().keySet());
-        Random random = new Random();
-        int iteration = 0;
-        while (iteration < maxIterations) {
-            int randomInt = random.nextInt(names.size());
-            if (!dataset.getLabels().get(names.get(randomInt)).equals("null")) {
-                dataset.updateLabel(names.get(randomInt), generatedLabel());
-            }
-            iteration++;
-        }
+        dataset.getLocations().forEach((instanceName, location) -> { dataset.getLabels().put(instanceName, generatedLabel()); });
         return dataset;
     }
 
@@ -70,6 +61,17 @@ public class RandomClusterer extends Clusterer {
     @Override
     public void run() {
         Platform.setImplicitExit(false);
+        Platform.runLater(() -> {
+            AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
+            try {
+                uiComponent.clearChart();
+                ((AppData) applicationTemplate.getDataComponent()).getProcessor().processString(uiComponent.getTextArea().getText());
+                ((AppData) applicationTemplate.getDataComponent()).getProcessor().toChartData(uiComponent.getChart());
+                uiComponent.getChart().getData().forEach(ser -> {
+                    ser.getNode().setStyle(applicationTemplate.manager.getPropertyValue(AppPropertyTypes.NULL_STROKE.name()));
+                });
+            } catch (Exception e) { }
+        });
         if (tocontinue.get()) {
             continuousrun();
         } else {
