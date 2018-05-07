@@ -25,6 +25,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -232,12 +233,15 @@ public class AppData implements DataComponent {
 
         final String JAVA_EXT = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.JAVA_EXT.name());
         final String ALGORITHMS_REL_PATH = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.ALGORITHMS_REL_PATH.name());
-        final String ALGORITHMS_REPLACE = applicationTemplate.manager.getPropertyValue(AppPropertyTypes.ALGORITHMS_REPLACE.name());
         AppUI uiComponent = ((AppUI) applicationTemplate.getUIComponent());
         File file = new File(ALGORITHMS_REL_PATH);
         Map<String, String> fileMap = new LinkedHashMap<>();
         for (File f : file.listFiles()) {
-            String filePath = f.toString().replace(ALGORITHMS_REPLACE, "").replace(JAVA_EXT, "").replace("/", ".");
+            Path path = Paths.get(f.toString());
+            path = (Paths.get(path.getName(path.getNameCount()-2).toString(), path.getName(path.getNameCount()-1).toString()));
+            int lastIndexOfJava = path.toString().lastIndexOf(JAVA_EXT);
+            String p = path.getName(path.getNameCount()-2).toString() + "." + path.getName(path.getNameCount()-1).toString();
+            String filePath = p.substring(0, lastIndexOfJava);
             fileMap.put(f.getName().replace(JAVA_EXT, ""), filePath);
         }
         String algorithmName = "";
