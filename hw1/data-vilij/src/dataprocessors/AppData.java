@@ -57,8 +57,6 @@ public class AppData implements DataComponent {
     public void loadData(Path dataFilePath) {
         applicationTemplate.getUIComponent().clear();
         clear();
-        // int lineCounter = 0;
-        // boolean moreThanTen = false;
         try {
             Text statsText = ((AppUI) applicationTemplate.getUIComponent()).getStatsText();
             TextArea textArea = ((AppUI) applicationTemplate.getUIComponent()).getTextArea();
